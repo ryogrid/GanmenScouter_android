@@ -94,20 +94,6 @@ public class GanmenScouter extends Activity {
 			}
 		});
 		linearLayout.addView(button1, new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
-
-        //AssetManagerを取得
-        AssetManager am = getAssets();
-        try {
-        	//AssetFileDescriptorを取得
-			AssetFileDescriptor fd = am.openFd("throw.mp3");
-			//FileDescripterを使って、使用するサウンドをloadしIDを取得する
-//			mIdThrow = mSp.load(fd, 1);
-//			fd = am.openFd("catc.mp3");
-			//FileDescripterを使って、使用するサウンドをloadしIDを取得する	
-//			mIdCatc = mSp.load(fd, 1);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
     }		
 
 	@Override
