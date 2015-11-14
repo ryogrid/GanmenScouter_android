@@ -27,6 +27,8 @@ import com.facepp.result.FaceppResult;
 
 public class GanmenScouter extends Activity {
 	private final int WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT;
+	private final String API_KEY = "0e5ac228d92bc2c63c11c9aa47752b2a";
+	private final String API_SECRET = "l7PsiUEj1TuF2b5_p369Ai8W6y_BnIsV";
 
 	private Button button1;
 
@@ -102,7 +104,7 @@ public class GanmenScouter extends Activity {
 	}
 	
 	private String get_face_id(String file_path){
-		HttpRequests httpRequests = new HttpRequests("0e5ac228d92bc2c63c11c9aa47752b2a", "l7PsiUEj1TuF2b5_p369Ai8W6y_BnIsV");
+		HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET);
 		
 	    byte[] b = new byte[1];
 	    AssetManager am = getAssets();	    
@@ -151,7 +153,28 @@ public class GanmenScouter extends Activity {
 		return ret;
 	}
 	
+	private double measure_similarity(String face_id1, String face_id2){
+		HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET);
+		
+		PostParameters params = new PostParameters();
+		params.setFaceId1(face_id1);
+		params.setFaceId2(face_id2);
+
+	    FaceppResult result = null;
+	    double ret = -1;
+		try {
+			 result = httpRequests.recognitionCompare(params);
+			 ret = result.get("similarity").toDouble();			 
+		} catch (FaceppParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return ret;
+	}
+	
 	private void measure_goodness() {		
-		tv_top.setText(get_face_id("japanese_bijin.png"));
+		//tv_top.setText(get_face_id("japanese_bijin.png"));
+		tv_top.setText(String.valueOf(measure_similarity(get_face_id("japanese_bijin.png"), get_face_id("i320.jpeg"))));
 	}
 }
