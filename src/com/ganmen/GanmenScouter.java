@@ -150,9 +150,25 @@ public class GanmenScouter extends Activity {
 	public void onWindowFocusChanged(boolean hasFocus) {
 		// フォーカス変更後の処理
 
+		rootView_ = mCamPreview;
+		
+		if(mCam != null){
+	        Camera.Parameters parameters = mCam.getParameters();
+
+	        // 縦画面の場合回転させる
+	        if ( rootView_.getWidth() < rootView_.getHeight()) {
+	            // 縦画面
+//	          parameters.setRotation(90);
+	            mCam.setDisplayOrientation(90);
+	        }else{
+	            // 横画面
+//	          parameters.setRotation(0);
+	            mCam.setDisplayOrientation(0);
+	        }				
+		}	
+		
 		// ---
 		// View作成
-		rootView_ = mCamPreview;
 
 		// // View内のView取得
 		// SurfaceView surfaceView_ = (SurfaceView)
@@ -176,7 +192,8 @@ public class GanmenScouter extends Activity {
 		} else {
 			// 縦画面
 			rtlp.width = rootView_.getWidth();
-			rtlp.height = rootView_.getWidth() * PREVIEW_HEIGHT / PREVIEW_WIDTH;
+			//rtlp.height = rootView_.getWidth() * PREVIEW_HEIGHT / PREVIEW_WIDTH;
+			rtlp.height = rootView_.getWidth() * PREVIEW_WIDTH / PREVIEW_HEIGHT;
 		}
 		rootView_.setLayoutParams(rtlp);
 
