@@ -100,8 +100,12 @@ public class GanmenScouter extends Activity {
                     if (!mIsTake) {
                         // 撮影中の2度押し禁止用フラグ
                         mIsTake = true;
+                        if (mCam != null) {
+                            // 撮影実行(AF開始)
+                            mCam.autoFocus(autoFocusListener_);
+                        }
                         // 画像取得
-                        mCam.takePicture(null, null, mPicJpgListener);
+                        //mCam.takePicture(null, null, mPicJpgListener);
                     }
                 }
                 return true;
@@ -165,6 +169,15 @@ public class GanmenScouter extends Activity {
 //		linearLayout.addView(button1, new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
     }		
 
+    // AF完了時のコールバック
+    private Camera.AutoFocusCallback autoFocusListener_ = new Camera.AutoFocusCallback() {
+        @Override
+        public void onAutoFocus(boolean success, Camera camera) {
+            camera.autoFocus(null);
+            mCam.takePicture(null, null, mPicJpgListener);
+        }
+    };
+    
     /**
      * JPEG データ生成完了時のコールバック
      */
