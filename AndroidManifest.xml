@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <application android:icon="@drawable/baseball512" android:label="@string/app_name">
+    <application android:icon="@drawable/glass512pt" android:label="@string/app_name">
         <activity android:name="GanmenScouter"
                   android:label="@string/app_name"
                     android:screenOrientation="portrait">

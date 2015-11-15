@@ -16,12 +16,14 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -37,8 +39,10 @@ import android.widget.TextView;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver.OnDrawListener;
 import android.view.ViewTreeObserver.OnGlobalFocusChangeListener;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.FrameLayout.LayoutParams;
 
 import com.facepp.*;
 import com.facepp.error.FaceppParseException;
@@ -88,7 +92,7 @@ public class GanmenScouter extends Activity {
         }
 
         // FrameLayout に CameraPreview クラスを設定
-        FrameLayout preview = (FrameLayout)findViewById(R.id.cameraPreview);
+        FrameLayout preview = (FrameLayout)findViewById(R.id.cameraPreview);    
         mCamPreview = new CameraPreview(this, mCam);       
 
         preview.addView(mCamPreview);         
@@ -167,6 +171,11 @@ public class GanmenScouter extends Activity {
 //			}
 //		});
 //		linearLayout.addView(button1, new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+
+		tv_top = new TextView(this);
+		tv_top.setTextColor(Color.RED);
+		tv_top.setText("ここに結果を出すよ");
+		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);
     }		
 
     // AF完了時のコールバック
@@ -198,40 +207,44 @@ public class GanmenScouter extends Activity {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             rotatedBitmap.compress(CompressFormat.JPEG, 100, baos);
             byte[] rotated_data = baos.toByteArray();
-          
-            String saveDir = Environment.getExternalStorageDirectory().getPath() + "/test";
 
-            // SD カードフォルダを取得
-            File file = new File(saveDir);
-
-            // フォルダ作成
-            if (!file.exists()) {
-                if (!file.mkdir()) {
-                    System.out.println("error: mkdir failed");
-                }
-            }
-
-            // 画像保存パス
-            Calendar cal = Calendar.getInstance();
-            SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-            String imgPath = saveDir + "/" + sf.format(cal.getTime()) + ".jpg";
-
-            // ファイル保存
-            FileOutputStream fos;
-            try {
-                fos = new FileOutputStream(imgPath, true);
-                fos.write(rotated_data);
-                fos.close();
-
-                // アンドロイドのデータベースへ登録
-                // (登録しないとギャラリーなどにすぐに反映されないため)
-                registAndroidDB(imgPath);
-
-            } catch (Exception e) {
-                System.out.println(e);
-            }
-
-            fos = null;
+            double tmp = measure_similarity(get_face_id("japanese_bijin.png"), get_face_id(rotated_data));
+            double result_val = 50 + 2 * (tmp - 46);
+            result_val = Math.floor(result_val);
+            tv_top.setText(String.valueOf(result_val) + "点");
+            
+//            String saveDir = Environment.getExternalStorageDirectory().getPath() + "/test";
+//            // SD カードフォルダを取得
+//            File file = new File(saveDir);
+//
+//            // フォルダ作成
+//            if (!file.exists()) {
+//                if (!file.mkdir()) {
+//                    System.out.println("error: mkdir failed");
+//                }
+//            }
+//
+//            // 画像保存パス
+//            Calendar cal = Calendar.getInstance();
+//            SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+//            String imgPath = saveDir + "/" + sf.format(cal.getTime()) + ".jpg";
+//
+//            // ファイル保存
+//            FileOutputStream fos;
+//            try {
+//                fos = new FileOutputStream(imgPath, true);
+//                fos.write(rotated_data);
+//                fos.close();
+//
+//                // アンドロイドのデータベースへ登録
+//                // (登録しないとギャラリーなどにすぐに反映されないため)
+//                registAndroidDB(imgPath);
+//
+//            } catch (Exception e) {
+//                System.out.println(e);
+//            }
+//
+//            fos = null;
 
             // takePicture するとプレビューが停止するので、再度プレビュースタート
             mCam.startPreview();
@@ -324,7 +337,27 @@ public class GanmenScouter extends Activity {
 
 	}
     
-    
+    private String get_face_id(byte[] data){
+    	HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET);
+    	
+    	FaceppResult result = null;
+		try {
+			//detect
+			 result = httpRequests.detectionDetect(new PostParameters().setImg(data));
+		} catch (FaceppParseException e) {
+			e.printStackTrace();
+		}
+		
+		String ret = null;
+		try {
+			ret = result.get("face").get(0).get("face_id").toString();
+		} catch (FaceppParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return ret;    	
+    }
+	
 	private String get_face_id(String file_path){
 		HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET);
 		
@@ -380,6 +413,9 @@ public class GanmenScouter extends Activity {
 		
 		PostParameters params = new PostParameters();
 		params.setFaceId1(face_id1);
+		if(face_id2 == null){
+			return -1;
+		}
 		params.setFaceId2(face_id2);
 
 	    FaceppResult result = null;
