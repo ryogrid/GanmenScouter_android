@@ -1,15 +1,30 @@
 package com.ganmen;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.provider.MediaStore.Images;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -51,7 +66,12 @@ public class GanmenScouter extends Activity {
     // カメラプレビュークラス
     private CameraPreview mCamPreview = null;
 
+    // 画面タッチの2度押し禁止用フラグ
+    private boolean mIsTake = false;
+    
     View rootView_ = null;
+    
+    Activity root_act = this;
     
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -72,7 +92,21 @@ public class GanmenScouter extends Activity {
         mCamPreview = new CameraPreview(this, mCam);       
 
         preview.addView(mCamPreview);         
-        
+
+        // mCamPreview に タッチイベントを設定
+        mCamPreview.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    if (!mIsTake) {
+                        // 撮影中の2度押し禁止用フラグ
+                        mIsTake = true;
+                        // 画像取得
+                        mCam.takePicture(null, null, mPicJpgListener);
+                    }
+                }
+                return true;
+            }
+        });        
 //		LinearLayout linearLayout = new LinearLayout(this);
 //		linearLayout.setOrientation(LinearLayout.VERTICAL);
 //		setContentView(linearLayout);
@@ -131,6 +165,82 @@ public class GanmenScouter extends Activity {
 //		linearLayout.addView(button1, new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
     }		
 
+    /**
+     * JPEG データ生成完了時のコールバック
+     */
+    private Camera.PictureCallback mPicJpgListener = new Camera.PictureCallback() {
+    	
+        public void onPictureTaken(byte[] data, Camera camera) {
+            if (data == null) {
+                return;
+            }
+            
+            Bitmap origBitmap = BitmapFactory.decodeByteArray(
+                    data, 0, data.length);            
+            int degrees = getCameraDisplayOrientation(root_act); // 後述のメソッド
+            Matrix m = new Matrix();
+            m.postRotate(degrees);
+            Bitmap rotatedBitmap = Bitmap.createBitmap(origBitmap, 0, 0, origBitmap.getWidth(), origBitmap.getHeight(), m, false);
+            
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            rotatedBitmap.compress(CompressFormat.JPEG, 100, baos);
+            byte[] rotated_data = baos.toByteArray();
+          
+            String saveDir = Environment.getExternalStorageDirectory().getPath() + "/test";
+
+            // SD カードフォルダを取得
+            File file = new File(saveDir);
+
+            // フォルダ作成
+            if (!file.exists()) {
+                if (!file.mkdir()) {
+                    System.out.println("error: mkdir failed");
+                }
+            }
+
+            // 画像保存パス
+            Calendar cal = Calendar.getInstance();
+            SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+            String imgPath = saveDir + "/" + sf.format(cal.getTime()) + ".jpg";
+
+            // ファイル保存
+            FileOutputStream fos;
+            try {
+                fos = new FileOutputStream(imgPath, true);
+                fos.write(rotated_data);
+                fos.close();
+
+                // アンドロイドのデータベースへ登録
+                // (登録しないとギャラリーなどにすぐに反映されないため)
+                registAndroidDB(imgPath);
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+
+            fos = null;
+
+            // takePicture するとプレビューが停止するので、再度プレビュースタート
+            mCam.startPreview();
+
+            mIsTake = false;
+        }
+    };
+
+    /**
+     * アンドロイドのデータベースへ画像のパスを登録
+     * @param path 登録するパス
+     */
+    private void registAndroidDB(String path) {
+        // アンドロイドのデータベースへ登録
+        // (登録しないとギャラリーなどにすぐに反映されないため)
+        ContentValues values = new ContentValues();
+        ContentResolver contentResolver = GanmenScouter.this.getContentResolver();
+        values.put(Images.Media.MIME_TYPE, "image/jpeg");
+        values.put("_data", path);
+        contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+    }
+    
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -276,4 +386,24 @@ public class GanmenScouter extends Activity {
 		//tv_top.setText(get_face_id("japanese_bijin.png"));
 		tv_top.setText(String.valueOf(measure_similarity(get_face_id("japanese_bijin.png"), get_face_id("i320.jpeg"))));
 	}
+	
+    private static int getCameraDisplayOrientation(Activity activity) {
+        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        int degrees = 0;
+        switch (rotation) {
+        case Surface.ROTATION_0:
+            degrees = 0;
+            break;
+        case Surface.ROTATION_90:
+            degrees = 90;
+            break;
+        case Surface.ROTATION_180:
+            degrees = 180;
+            break;
+        case Surface.ROTATION_270:
+            degrees = 270;
+            break;
+        }
+        return (90 + 360 - degrees) % 360;
+    }	
 }
