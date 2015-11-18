@@ -83,6 +83,7 @@ public class GanmenScouter extends Activity {
 
         setContentView(R.layout.main);
 
+        
         // カメラインスタンスの取得
         try {
             mCam = Camera.open();
@@ -91,6 +92,10 @@ public class GanmenScouter extends Activity {
             this.finish();
         }
 
+        Camera.Parameters params = mCam.getParameters();
+        params.setPictureSize(PREVIEW_WIDTH,PREVIEW_HEIGHT);
+        params.setPreviewSize(PREVIEW_WIDTH,PREVIEW_HEIGHT);
+        
         // FrameLayout に CameraPreview クラスを設定
         FrameLayout preview = (FrameLayout)findViewById(R.id.cameraPreview);    
         mCamPreview = new CameraPreview(this, mCam);       
@@ -213,38 +218,38 @@ public class GanmenScouter extends Activity {
             result_val = Math.floor(result_val);
             tv_top.setText(String.valueOf(result_val) + "点");
             
-//            String saveDir = Environment.getExternalStorageDirectory().getPath() + "/test";
-//            // SD カードフォルダを取得
-//            File file = new File(saveDir);
-//
-//            // フォルダ作成
-//            if (!file.exists()) {
-//                if (!file.mkdir()) {
-//                    System.out.println("error: mkdir failed");
-//                }
-//            }
-//
-//            // 画像保存パス
-//            Calendar cal = Calendar.getInstance();
-//            SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-//            String imgPath = saveDir + "/" + sf.format(cal.getTime()) + ".jpg";
-//
-//            // ファイル保存
-//            FileOutputStream fos;
-//            try {
-//                fos = new FileOutputStream(imgPath, true);
-//                fos.write(rotated_data);
-//                fos.close();
-//
-//                // アンドロイドのデータベースへ登録
-//                // (登録しないとギャラリーなどにすぐに反映されないため)
-//                registAndroidDB(imgPath);
-//
-//            } catch (Exception e) {
-//                System.out.println(e);
-//            }
-//
-//            fos = null;
+            String saveDir = Environment.getExternalStorageDirectory().getPath() + "/GanmenScouter";
+            // SD カードフォルダを取得
+            File file = new File(saveDir);
+
+            // フォルダ作成
+            if (!file.exists()) {
+                if (!file.mkdir()) {
+                    System.out.println("error: mkdir failed");
+                }
+            }
+
+            // 画像保存パス
+            Calendar cal = Calendar.getInstance();
+            SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+            String imgPath = saveDir + "/" + sf.format(cal.getTime()) + ".jpg";
+
+            // ファイル保存
+            FileOutputStream fos;
+            try {
+                fos = new FileOutputStream(imgPath, true);
+                fos.write(rotated_data);
+                fos.close();
+
+                // アンドロイドのデータベースへ登録
+                // (登録しないとギャラリーなどにすぐに反映されないため)
+                registAndroidDB(imgPath);
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+
+            fos = null;
 
             // takePicture するとプレビューが停止するので、再度プレビュースタート
             mCam.startPreview();
