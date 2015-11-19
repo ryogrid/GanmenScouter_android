@@ -7,6 +7,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
+
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -19,10 +22,12 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.hardware.Camera;
+import android.hardware.Camera.Size;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -48,7 +53,6 @@ import com.facepp.*;
 import com.facepp.error.FaceppParseException;
 import com.facepp.http.HttpRequests;
 import com.facepp.http.PostParameters;
-import com.facepp.result.FaceppResult;
 
 public class GanmenScouter extends Activity {
 	private final int WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -56,8 +60,8 @@ public class GanmenScouter extends Activity {
 	private final String API_SECRET = "l7PsiUEj1TuF2b5_p369Ai8W6y_BnIsV";
 
     // プレビューサイズ
-    static private final int PREVIEW_WIDTH = 640;
-    static private final int PREVIEW_HEIGHT = 480;
+    static private int width = -1;
+    static private int height = -1;
     
 	private Button button1;
 
@@ -93,8 +97,27 @@ public class GanmenScouter extends Activity {
         }
 
         Camera.Parameters params = mCam.getParameters();
-        params.setPictureSize(PREVIEW_WIDTH,PREVIEW_HEIGHT);
-        params.setPreviewSize(PREVIEW_WIDTH,PREVIEW_HEIGHT);
+        
+        int min_width = -1;
+        //Picture解像度取得
+        List<Size> supportedPictureSizes = params.getSupportedPictureSizes();
+        if (supportedPictureSizes != null && supportedPictureSizes.size() > 1) {
+            for(int i=0;i<supportedPictureSizes.size();i++){
+                Size size = supportedPictureSizes.get(i);
+                //解像度表示
+                //System.out.println("picture width:"+size.width+" height:"+size.height);
+                if(min_width == -1){
+                	width = size.width;
+                	height = size.height;
+                }else if(size.width < width){
+                	width = size.width;
+                	height = size.height;                	
+                }
+            }
+        }           
+        
+        params.setPictureSize(width, height);
+        params.setPreviewSize(width, height);
         
         // FrameLayout に CameraPreview クラスを設定
         FrameLayout preview = (FrameLayout)findViewById(R.id.cameraPreview);    
@@ -104,7 +127,7 @@ public class GanmenScouter extends Activity {
 
         // mCamPreview に タッチイベントを設定
         mCamPreview.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
+            public boolean onTouch(View v, MotionEvent event) {          	
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     if (!mIsTake) {
                         // 撮影中の2度押し禁止用フラグ
@@ -328,13 +351,13 @@ public class GanmenScouter extends Activity {
 		ViewGroup.LayoutParams rtlp = rootView_.getLayoutParams();
 		if (isLandscape) {
 			// 横画面
-			rtlp.width = rootView_.getHeight() * PREVIEW_WIDTH / PREVIEW_HEIGHT;
+			rtlp.width = rootView_.getHeight() * width / height;
 			rtlp.height = rootView_.getHeight();
 		} else {
 			// 縦画面
 			rtlp.width = rootView_.getWidth();
 			//rtlp.height = rootView_.getWidth() * PREVIEW_HEIGHT / PREVIEW_WIDTH;
-			rtlp.height = rootView_.getWidth() * PREVIEW_WIDTH / PREVIEW_HEIGHT;
+			rtlp.height = rootView_.getWidth() * width / height;
 		}
 		rootView_.setLayoutParams(rtlp);
 
@@ -343,9 +366,9 @@ public class GanmenScouter extends Activity {
 	}
     
     private String get_face_id(byte[] data){
-    	HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET);
+    	HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, false, false);
     	
-    	FaceppResult result = null;
+    	JSONObject result = null;
 		try {
 			//detect
 			 result = httpRequests.detectionDetect(new PostParameters().setImg(data));
@@ -354,17 +377,13 @@ public class GanmenScouter extends Activity {
 		}
 		
 		String ret = null;
-		try {
-			ret = result.get("face").get(0).get("face_id").toString();
-		} catch (FaceppParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		ret = result.getJSONArray("face").getJSONObject(0).getString("face_id");
+
 		return ret;    	
     }
 	
 	private String get_face_id(String file_path){
-		HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET);
+		HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, false, false);
 		
 	    byte[] b = new byte[1];
 	    AssetManager am = getAssets();	    
@@ -395,7 +414,7 @@ public class GanmenScouter extends Activity {
 
 	    byte[] array = baos.toByteArray();		
 		
-	    FaceppResult result = null;
+	    JSONObject result = null;
 		try {
 			//detect
 			 result = httpRequests.detectionDetect(new PostParameters().setImg(array));
@@ -404,17 +423,14 @@ public class GanmenScouter extends Activity {
 		}
 		
 		String ret = null;
-		try {
-			ret = result.get("face").get(0).get("face_id").toString();
-		} catch (FaceppParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		//System.out.println(result);
+		ret = result.getJSONArray("face").getJSONObject(0).getString("face_id");
+
 		return ret;
 	}
 	
 	private double measure_similarity(String face_id1, String face_id2){
-		HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET);
+		HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, false, false);
 		
 		PostParameters params = new PostParameters();
 		params.setFaceId1(face_id1);
@@ -423,11 +439,11 @@ public class GanmenScouter extends Activity {
 		}
 		params.setFaceId2(face_id2);
 
-	    FaceppResult result = null;
+		JSONObject result = null;
 	    double ret = -1;
 		try {
 			 result = httpRequests.recognitionCompare(params);
-			 ret = result.get("similarity").toDouble();			 
+			 ret = result.getDouble("similarity");			 
 		} catch (FaceppParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
