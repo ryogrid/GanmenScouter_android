@@ -56,8 +56,8 @@ import com.facepp.http.PostParameters;
 
 public class GanmenScouter extends Activity {
 	private final int WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT;
-	private final String API_KEY = "0e5ac228d92bc2c63c11c9aa47752b2a";
-	private final String API_SECRET = "l7PsiUEj1TuF2b5_p369Ai8W6y_BnIsV";
+	private final String API_KEY = "b090f5a8d9c833fa9ef8bc6d2bc4e647";
+	private final String API_SECRET = "S0e2ZbFYUSOfXpyfou4B67H5Cklr_4di";
 
     // プレビューサイズ
     static private int width = -1;
@@ -366,7 +366,7 @@ public class GanmenScouter extends Activity {
 	}
     
     private String get_face_id(byte[] data){
-    	HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, false, false);
+    	HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, true, false);
     	
     	JSONObject result = null;
 		try {
@@ -383,7 +383,7 @@ public class GanmenScouter extends Activity {
     }
 	
 	private String get_face_id(String file_path){
-		HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, false, false);
+		HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, true, false);
 		
 	    byte[] b = new byte[1];
 	    AssetManager am = getAssets();	    
@@ -430,7 +430,7 @@ public class GanmenScouter extends Activity {
 	}
 	
 	private double measure_similarity(String face_id1, String face_id2){
-		HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, false, false);
+		HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, true, false);
 		
 		PostParameters params = new PostParameters();
 		params.setFaceId1(face_id1);
