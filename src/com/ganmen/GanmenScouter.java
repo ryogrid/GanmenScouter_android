@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -79,7 +80,9 @@ public class GanmenScouter extends Activity {
     
     View rootView_ = null;
     
-    Activity root_act = this;
+    Activity root_act = this; 
+    
+    boolean called_intent = false;
     
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -87,7 +90,10 @@ public class GanmenScouter extends Activity {
 
         setContentView(R.layout.main);
 
-        
+        setup_cam_and_preview();
+    }
+	
+	private void setup_cam_and_preview(){        
         // カメラインスタンスの取得
         try {
             mCam = Camera.open();
@@ -118,93 +124,40 @@ public class GanmenScouter extends Activity {
         
         params.setPictureSize(width, height);
         params.setPreviewSize(width, height);
-        
-        // FrameLayout に CameraPreview クラスを設定
-        FrameLayout preview = (FrameLayout)findViewById(R.id.cameraPreview);    
-        mCamPreview = new CameraPreview(this, mCam);       
 
-        preview.addView(mCamPreview);         
 
-        // mCamPreview に タッチイベントを設定
-        mCamPreview.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {          	
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    if (!mIsTake) {
-                        // 撮影中の2度押し禁止用フラグ
-                        mIsTake = true;
-                        if (mCam != null) {
-                            // 撮影実行(AF開始)
-                            mCam.autoFocus(autoFocusListener_);
-                        }
-                        // 画像取得
-                        //mCam.takePicture(null, null, mPicJpgListener);
-                    }
-                }
-                return true;
-            }
-        });        
-//		LinearLayout linearLayout = new LinearLayout(this);
-//		linearLayout.setOrientation(LinearLayout.VERTICAL);
-//		setContentView(linearLayout);
-//
-//		tv_top = new TextView(this);
-//		tv_top.setText("番号を入力&距離(メートル)選択して投げてみよう");
-//		linearLayout.addView(tv_top, new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
-//
-//		TextView tv = new TextView(this);
-//		tv.setText("共通の番号を入れてね");
-//		linearLayout.addView(tv, new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
-//
-//		edit = new EditText(this);
-//		edit.setWidth(200);
-//		edit.setText("ここに入力してね");
-//		linearLayout.addView(edit, new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
-//	
-//        ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item);
-//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-// 
-//        // アイテムを追加します      
-//        adapter.add("1");
-//        adapter.add("3");
-//        adapter.add("5");
-//        adapter.add("10");
-//        adapter.add("30");
-//        adapter.add("100");
-// 
-//        Spinner spinner = new Spinner(this);
-//        // アダプターを設定します
-//        spinner.setAdapter(adapter);
-//        // スピナーのアイテムが選択された時に呼び出されるコールバックリスナーを登録します
-//        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//            @Override
-//            public void onItemSelected(AdapterView parent, View view,
-//                    int position, long id) {
-//                Spinner spinner = (Spinner) parent;
-//                // 選択されたアイテムを取得します
-//                String item = (String) spinner.getSelectedItem();
-//                //between = Integer.parseInt(item);
-//            }
-//            @Override
-//            public void onNothingSelected(AdapterView arg0) {
-//            }
-//        });
-//        linearLayout.addView(spinner, new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));                
-//
-//		button1 = new Button(this);
-//		button1.setText("類似度測定テスト");
-//		button1.setOnClickListener(new OnClickListener() {
-//			public void onClick(View v) {
-//				//side = RECV;
-//				measure_goodness();
-//			}
-//		});
-//		linearLayout.addView(button1, new LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT));
+		// FrameLayout に CameraPreview クラスを設定
+		FrameLayout preview = (FrameLayout) findViewById(R.id.cameraPreview);
+		
+		mCamPreview = new CameraPreview(this, mCam);
+
+		preview.addView(mCamPreview);
+
+		// mCamPreview に タッチイベントを設定
+		mCamPreview.setOnTouchListener(new View.OnTouchListener() {
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					if (!mIsTake) {
+						// 撮影中の2度押し禁止用フラグ
+						mIsTake = true;
+						if (mCam != null) {
+							// 撮影実行(AF開始)
+							mCam.autoFocus(autoFocusListener_);
+						}
+						// 画像取得
+						// mCam.takePicture(null, null, mPicJpgListener);
+					}
+				}
+				return true;
+			}
+		});
 
 		tv_top = new TextView(this);
 		tv_top.setTextColor(Color.RED);
 		tv_top.setText("ここに結果を出すよ");
 		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);
-    }		
+		
+	}
 
     // AF完了時のコールバック
     private Camera.AutoFocusCallback autoFocusListener_ = new Camera.AutoFocusCallback() {
@@ -235,11 +188,6 @@ public class GanmenScouter extends Activity {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             rotatedBitmap.compress(CompressFormat.JPEG, 100, baos);
             byte[] rotated_data = baos.toByteArray();
-
-            double tmp = measure_similarity(get_face_id("japanese_bijin.png"), get_face_id(rotated_data));
-            double result_val = 50 + 2 * (tmp - 46);
-            result_val = Math.floor(result_val);
-            tv_top.setText(String.valueOf(result_val) + "点");
             
             String saveDir = Environment.getExternalStorageDirectory().getPath() + "/GanmenScouter";
             // SD カードフォルダを取得
@@ -274,13 +222,35 @@ public class GanmenScouter extends Activity {
 
             fos = null;
 
-            // takePicture するとプレビューが停止するので、再度プレビュースタート
-            mCam.startPreview();
-
+            double tmp = measure_similarity(get_face_id("japanese_bijin.png"), get_face_id(rotated_data));
+            double result_val = 50 + 2 * (tmp - 46);
+            result_val = Math.floor(result_val);
+            tv_top.setText(String.valueOf(result_val) + "点");
+            
             mIsTake = false;
+            
+            try {
+            	called_intent = true;
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_SEND);
+                intent.setType("text/plain");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra(Intent.EXTRA_TEXT, "顔面偏差値 " + String.valueOf(result_val) + "点でした! http://bit.ly/1NbvhcO  #顔面スカウター");
+                startActivityForResult(Intent.createChooser(intent, String.valueOf(result_val) + "点を共有（しない場合は端末の戻るボタンを押して下さい）"), 101);
+            } catch (Exception e) {
+            }
+            
+            // takePicture するとプレビューが停止するので、再度プレビュースタート
+            mCam.startPreview();             
         }
     };
 
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+//        // takePicture するとプレビューが停止するので、再度プレビュースタート
+//        mCam.startPreview();    	
+//    }
+    
     /**
      * アンドロイドのデータベースへ画像のパスを登録
      * @param path 登録するパス
@@ -298,16 +268,21 @@ public class GanmenScouter extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+//		if(called_intent){
+//			setup_cam_and_preview(false);
+//			called_intent = false;
+//		}
+		mCam.startPreview();		
 	}
 
     @Override
     protected void onPause() {
         super.onPause();
-        // カメラ破棄インスタンスを解放
-        if (mCam != null) {
-            mCam.release();
-            mCam = null;
-        }
+//        // カメラ破棄インスタンスを解放
+//        if (mCam != null) {
+//            mCam.release();
+//            mCam = null;
+//        }
     }
 
 	@Override
@@ -362,7 +337,6 @@ public class GanmenScouter extends Activity {
 		rootView_.setLayoutParams(rtlp);
 
 		// ---
-
 	}
     
     private String get_face_id(byte[] data){
