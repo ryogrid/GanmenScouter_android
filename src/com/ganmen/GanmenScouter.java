@@ -1,14 +1,17 @@
 package com.ganmen;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.app.Activity;
@@ -104,14 +107,14 @@ public class GanmenScouter extends Activity {
 
         Camera.Parameters params = mCam.getParameters();
         
-        int min_width = -1;
+        int min_width = -1;	
         //Picture解像度取得
         List<Size> supportedPictureSizes = params.getSupportedPictureSizes();
         if (supportedPictureSizes != null && supportedPictureSizes.size() > 1) {
             for(int i=0;i<supportedPictureSizes.size();i++){
                 Size size = supportedPictureSizes.get(i);
                 //解像度表示
-                //System.out.println("picture width:"+size.width+" height:"+size.height);
+                System.out.println("picture width:"+size.width+" height:"+size.height);
                 if(min_width == -1){
                 	width = size.width;
                 	height = size.height;
@@ -185,9 +188,47 @@ public class GanmenScouter extends Activity {
             m.postRotate(degrees);
             Bitmap rotatedBitmap = Bitmap.createBitmap(origBitmap, 0, 0, origBitmap.getWidth(), origBitmap.getHeight(), m, false);
             
+			// ---
+
+			// もし、画像が大きかったら縮小して読み込む
+			// 今回はimageSizeMaxの大きさに合わせる
+			Bitmap shrinked_bitmap;
+			int imageSizeMax = 240;
+			float imageScaleWidth = rotatedBitmap.getWidth() / imageSizeMax;
+			float imageScaleHeight = rotatedBitmap.getHeight() / imageSizeMax;
+
+			// もしも、縮小できるサイズならば、縮小して読み込む
+			if (imageScaleWidth > 2 && imageScaleHeight > 2) {
+				BitmapFactory.Options imageOptions2 = new BitmapFactory.Options();
+
+				// 縦横、小さい方に縮小するスケールを合わせる
+				int imageScale = (int) Math
+						.floor((imageScaleWidth > imageScaleHeight ? imageScaleHeight : imageScaleWidth));
+
+				// inSampleSizeには2のべき上が入るべきなので、imageScaleに最も近く、かつそれ以下の2のべき上の数を探す
+				for (int i = 2; i <= imageScale; i *= 2) {
+					imageOptions2.inSampleSize = i;
+				}
+
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				rotatedBitmap.compress(CompressFormat.JPEG, 100, baos);
+				byte[] rot_bytes = baos.toByteArray();
+				ByteArrayInputStream bis = new ByteArrayInputStream(rot_bytes);
+				shrinked_bitmap = BitmapFactory.decodeStream(bis, null, imageOptions2);
+				try {
+					bis.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+				System.out.println("Sample Size: 1/" + imageOptions2.inSampleSize);				
+			} else {
+				shrinked_bitmap = rotatedBitmap;
+			}
+			// ---
+                                                
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            rotatedBitmap.compress(CompressFormat.JPEG, 100, baos);
-            byte[] rotated_data = baos.toByteArray();
+            shrinked_bitmap.compress(CompressFormat.JPEG, 100, baos);
+            byte[] shrinked_data = baos.toByteArray();
             
             String saveDir = Environment.getExternalStorageDirectory().getPath() + "/GanmenScouter";
             // SD カードフォルダを取得
@@ -209,7 +250,7 @@ public class GanmenScouter extends Activity {
             FileOutputStream fos;
             try {
                 fos = new FileOutputStream(imgPath, true);
-                fos.write(rotated_data);
+                fos.write(shrinked_data);
                 fos.close();
 
                 // アンドロイドのデータベースへ登録
@@ -222,7 +263,7 @@ public class GanmenScouter extends Activity {
 
             fos = null;
 
-            double tmp = measure_similarity(get_face_id("japanese_bijin.png"), get_face_id(rotated_data));
+            double tmp = measure_similarity(get_face_id("japanese_bijin.png"), get_face_id(shrinked_data));
             double result_val = 50 + 2 * (tmp - 46);
             result_val = Math.floor(result_val);
             tv_top.setText(String.valueOf(result_val) + "点");
@@ -331,8 +372,11 @@ public class GanmenScouter extends Activity {
 		} else {
 			// 縦画面
 			rtlp.width = rootView_.getWidth();
-			//rtlp.height = rootView_.getWidth() * PREVIEW_HEIGHT / PREVIEW_WIDTH;
-			rtlp.height = rootView_.getWidth() * width / height;
+			if (width > height){
+				rtlp.height = rootView_.getWidth() * width / height;
+			}else{
+				rtlp.height = rootView_.getWidth() * height / width;				
+			}
 		}
 		rootView_.setLayoutParams(rtlp);
 
@@ -351,7 +395,10 @@ public class GanmenScouter extends Activity {
 		}
 		
 		String ret = null;
-		ret = result.getJSONArray("face").getJSONObject(0).getString("face_id");
+		JSONArray tmp = result.getJSONArray("face");
+		if(tmp.length() > 0){
+			ret = tmp.getJSONObject(0).getString("face_id");
+		}
 
 		return ret;    	
     }
