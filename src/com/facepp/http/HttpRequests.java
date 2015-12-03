@@ -1,13 +1,16 @@
 package com.facepp.http;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.HttpConnection;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -25,6 +28,7 @@ import com.facepp.error.FaceppParseException;
 public class HttpRequests {
 	
 	static final private String WEBSITE_CN = "https://apicn.faceplusplus.com/v2/";
+	//static final private String WEBSITE_CN = "http://localhost:8080/";
 	static final private String DWEBSITE_CN = "http://apicn.faceplusplus.com/v2/";
 	static final private String WEBSITE_US = "https://apius.faceplusplus.com/v2/";
 	static final private String DWEBSITE_US = "http://apius.faceplusplus.com/v2/";
@@ -296,23 +300,20 @@ public class HttpRequests {
 		URL url;
 		HttpURLConnection urlConn = null;
 		try {
-			url = new URL(webSite+control+"/"+action);
+			//url = new URL(webSite+control+"/"+action);
+			if(action.equals("compare")){
+				url = new URL(webSite+control+"/"+action+"?api_key="+apiKey+"&api_secret="+apiSecret+"&face_id1="+params.get_face_id1()+"&face_id2="+params.get_face_id2());				
+			}else{ //detection
+				url = new URL(webSite+control+"/"+action+"?api_key="+apiKey+"&api_secret="+apiSecret);				
+			}			
 			urlConn = (HttpURLConnection) url.openConnection();
-	        urlConn.setRequestMethod("POST");
-	        urlConn.setConnectTimeout(httpTimeOut);
-	        urlConn.setReadTimeout(httpTimeOut);
-	        urlConn.setDoOutput(true);
-
-	        urlConn.setRequestProperty("connection", "keep-alive");
-	        urlConn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + params.boundaryString());
 			
-	        MultipartEntity reqEntity = params.getMultiPart();
-            
-            reqEntity.addPart("api_key", new StringBody(apiKey));
-            reqEntity.addPart("api_secret", new StringBody(apiSecret));
-	        
-            reqEntity.writeTo(urlConn.getOutputStream());
-            
+			if(action.equals("compare")){
+				urlConn = request_compare(urlConn, params);
+			}else{ //detection
+				urlConn = request_detection(urlConn, params);				
+			}		            			
+			
             String resultString = null;
             if (urlConn.getResponseCode() == 200)
             	resultString = readString(urlConn.getInputStream());
@@ -340,6 +341,108 @@ public class HttpRequests {
 			if (urlConn != null)
 				urlConn.disconnect();
 		}
+	}
+	
+	private HttpURLConnection request_detection(HttpURLConnection urlConn, PostParameters params){
+        try {
+			urlConn.setRequestMethod("POST");
+		} catch (ProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        urlConn.setConnectTimeout(httpTimeOut);
+        urlConn.setReadTimeout(httpTimeOut);
+        //urlConn.setChunkedStreamingMode(0);        
+        urlConn.setDoOutput(true);
+
+        urlConn.setRequestProperty("connection", "keep-alive");
+        urlConn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + params.boundaryString());	        	
+     
+        final String twoHyphens = "--";
+        //final String boundary =  "*****"+ UUID.randomUUID().toString()+"*****";	        
+        final String boundary = params.boundaryString();
+        final String lineEnd = "\r\n";
+        final int maxBufferSize = 1024*1024*3;
+
+        StringBuilder contentsBuilder = new StringBuilder();
+        String closingContents = "";
+        int iContentsLength = 0;
+        byte[] file_data = null;
+        
+        DataOutputStream outputStream;
+		try {
+			HashMap<String, byte[]> multiPart = params.getMultipart();
+			contentsBuilder.append(lineEnd);
+			for (Map.Entry<String, byte[]> entry : multiPart.entrySet()) {
+				if(entry.getKey().equals("img")){
+					contentsBuilder.append(twoHyphens + boundary + lineEnd);
+					// outputStream.writeBytes("Content-Disposition: form-data;
+					// name=\"" + entry.getKey() + "\";filename=\"hoge.jpeg\";"+
+					// lineEnd);
+					contentsBuilder.append("Content-Disposition: form-data;name=\"" + entry.getKey() + "\";filename=\"hoge.png\"" + lineEnd);
+					// outputStream.writeBytes("Content-Type: text/plain"+lineEnd);
+					contentsBuilder.append("Content-Type: application/octet-stream" + lineEnd);
+					contentsBuilder.append(lineEnd);
+					
+					file_data = entry.getValue();
+					
+					// outputStream.writeBytes(new String(entry.getValue()));
+					//contentsBuilder.append(lineEnd);
+
+					// System.out.println(twoHyphens + boundary + lineEnd);
+					//// outputStream.writeBytes("Content-Disposition: form-data;
+					// name=\"" + entry.getKey() + "\";filename=\"hoge.jpeg\";"+
+					// lineEnd);
+					// System.out.println("Content-Disposition: form-data; name=\""
+					// + entry.getKey() + "\";"+ lineEnd);
+					// //outputStream.writeBytes("Content-Type:
+					// text/plain"+lineEnd);
+					// outputStream.writeBytes("Content-Type:
+					// application/octet-stream"+lineEnd);
+					// System.out.println(lineEnd);
+					// System.out.write(entry.getValue());
+					// //outputStream.writeBytes(new String(entry.getValue()));
+					// System.out.println(lineEnd);					
+				}
+			}
+
+			closingContents = lineEnd + twoHyphens + boundary + twoHyphens + lineEnd;
+			
+            iContentsLength += contentsBuilder.toString().getBytes("UTF-8").length;
+            iContentsLength += closingContents.getBytes("UTF-8").length;
+            iContentsLength += file_data.length;
+
+    	    urlConn.setRequestProperty("Content-Length", String.valueOf(iContentsLength));
+
+			outputStream = new DataOutputStream(urlConn.getOutputStream());    	    
+    	    outputStream.writeBytes(contentsBuilder.toString());
+       	    outputStream.write(file_data);       	        	    
+       	    outputStream.writeBytes(closingContents);
+       	    
+            outputStream.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+        //params.sendMultipart(new DataOutputStream(urlConn.getOutputStream()));
+		return urlConn;
+	}
+
+	private HttpURLConnection request_compare(HttpURLConnection urlConn, PostParameters params){
+        try {
+			urlConn.setRequestMethod("GET");
+		} catch (ProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        urlConn.setConnectTimeout(httpTimeOut);
+        urlConn.setReadTimeout(httpTimeOut);
+        urlConn.setDoOutput(true);
+
+        urlConn.setRequestProperty("connection", "keep-alive");
+        
+        return urlConn;
 	}
 	
 	private static String readString(InputStream is) {

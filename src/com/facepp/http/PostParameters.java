@@ -1,16 +1,15 @@
 package com.facepp.http;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
-
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.ByteArrayBody;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
+import java.util.UUID;
 
 /**
  * Http Multipart<br />
@@ -20,7 +19,7 @@ import org.apache.http.entity.mime.content.StringBody;
  * @version 1.3.0
  */
 public class PostParameters {
-	private MultipartEntity multiPart = null;
+	private HashMap<String, byte[]> multiPart = null;
 	private final static int boundaryLength = 32;
 	private final static String boundaryAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_";
 	private String boundary;
@@ -37,12 +36,6 @@ public class PostParameters {
 		return sb.toString();
 	}
 	
-	/**
-	 * @return get MultipartEntity (apache)
-	 */
-	public MultipartEntity getMultiPart() {
-		return multiPart;
-	}
 	
 	/**
 	 * default boundary is auto generate {@link #getBoundary()}
@@ -50,7 +43,8 @@ public class PostParameters {
 	public PostParameters() {
 		super();
 		boundary = getBoundary();
-		multiPart = new MultipartEntity(HttpMultipartMode.STRICT , boundary,  Charset.forName("UTF-8"));
+		//multiPart = new MultipartEntity(HttpMultipartMode.STRICT , boundary,  Charset.forName("UTF-8"));
+		multiPart = new HashMap<String, byte[]>();
 	}
 	
 	/**
@@ -105,8 +99,13 @@ public class PostParameters {
 	 * @param file
 	 * @return this
 	 */
-	public PostParameters setImg(File file) {
-		multiPart.addPart("img", new FileBody(file));
+	public PostParameters setImg(File file) {		
+		try {
+			multiPart.put("img", readFileToByte(file.getPath()));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return this;
 	}
 	
@@ -127,7 +126,17 @@ public class PostParameters {
 	 * @return this
 	 */
 	public PostParameters setImg(byte[] data, String fileName) {
-		multiPart.addPart("img", new ByteArrayBody(data, fileName));
+		if(fileName.equals("NoName")){
+			multiPart.put("img", data);			
+		}else{
+			try {
+				multiPart.put("img", readFileToByte(fileName));
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}			
+		}
+
 		return this;
 	}
 	
@@ -421,12 +430,8 @@ public class PostParameters {
 		return this;
 	}
 	
-	private void addString(String id, String str) {
-		try {
-			multiPart.addPart(id, new StringBody(str, Charset.forName("UTF-8")));
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
+	public void addString(String id, String str) {
+		multiPart.put(id, str.getBytes());
 	}
 	
 	private String toStringList(String[] sa) {
@@ -448,4 +453,36 @@ public class PostParameters {
 		
 		return sb.toString();
 	}
+	
+	 public HashMap<String, byte[]> getMultipart(){
+		 return multiPart;
+	 }	
+	 
+	 private byte[] readFileToByte(String filePath) throws Exception {
+		    byte[] b = new byte[1];
+		    FileInputStream fis = new FileInputStream(filePath);
+		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		    while (fis.read(b) > 0) {
+		        baos.write(b);
+		    }
+		    baos.close();
+		    fis.close();
+		    b = baos.toByteArray();
+		 
+		    return b;
+	}
+
+	public String getImgLength() {
+		return String.valueOf(((byte[])multiPart.get("img")).length);
+	}
+
+	public String get_face_id1() {
+		// TODO Auto-generated method stub
+		return new String(multiPart.get("face_id1"));
+	}
+	
+	public String get_face_id2() {
+		// TODO Auto-generated method stub
+		return new String(multiPart.get("face_id2"));
+	}	
 }

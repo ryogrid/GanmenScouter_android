@@ -445,8 +445,13 @@ public class GanmenScouter extends Activity {
 		
 		String ret = null;
 		//System.out.println(result);
-		ret = result.getJSONArray("face").getJSONObject(0).getString("face_id");
-
+		if(result != null){
+			JSONArray tmp = result.getJSONArray("face");
+			if(tmp != null){
+				ret = tmp.getJSONObject(0).getString("face_id");
+			}			
+		}
+		
 		return ret;
 	}
 	
