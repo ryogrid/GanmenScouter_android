@@ -58,6 +58,9 @@ import com.facepp.error.FaceppParseException;
 import com.facepp.http.HttpRequests;
 import com.facepp.http.PostParameters;
 
+import com.ganmen.AnalyticsApplication;
+import com.google.android.gms.analytics.HitBuilders;
+
 public class GanmenScouter extends Activity {
 	private final int WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT;
 	private final String API_KEY = "b090f5a8d9c833fa9ef8bc6d2bc4e647";
@@ -86,6 +89,14 @@ public class GanmenScouter extends Activity {
     Activity root_act = this; 
     
     boolean called_intent = false;
+    
+    @Override
+    public void onStart() {
+      super.onStart();
+   // Obtain the shared Tracker instance.
+      AnalyticsApplication.tracker().setScreenName("main screen");
+      AnalyticsApplication.tracker().send(new HitBuilders.ScreenViewBuilder().build());      
+    }    
     
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -271,6 +282,10 @@ public class GanmenScouter extends Activity {
             mIsTake = false;
             
             try {
+            	AnalyticsApplication.tracker().send(new HitBuilders.EventBuilder()
+            		    .setCategory("Action")
+            		    .setAction("TakePic")
+            		    .build());            	
             	called_intent = true;
                 Intent intent = new Intent();
                 intent.setAction(Intent.ACTION_SEND);
