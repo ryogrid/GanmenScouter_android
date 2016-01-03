@@ -348,17 +348,18 @@ public class GanmenScouter extends Activity {
 		rootView_ = mCamPreview;
 		
 		if(mCam != null){
-	        Camera.Parameters parameters = mCam.getParameters();
+//	        Camera.Parameters parameters = mCam.getParameters();
 
 	        // 縦画面の場合回転させる
 	        if ( rootView_.getWidth() < rootView_.getHeight()) {
 	            // 縦画面
 //	          parameters.setRotation(90);
 	            mCam.setDisplayOrientation(90);
+//	            mCam.setDisplayOrientation(0);
 	        }else{
 	            // 横画面
 //	          parameters.setRotation(0);
-	            mCam.setDisplayOrientation(0);
+	            mCam.setDisplayOrientation(90); //0
 	        }				
 		}	
 		
@@ -383,7 +384,10 @@ public class GanmenScouter extends Activity {
 		if (isLandscape) {
 			// 横画面
 			rtlp.width = rootView_.getHeight() * width / height;
+			//rtlp.width = rootView_.getHeight() * height / width;
+			
 			rtlp.height = rootView_.getHeight();
+			//rtlp.height = rootView_.getHeight() * height / width;
 		} else {
 			// 縦画面
 			rtlp.width = rootView_.getWidth();
