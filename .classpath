@@ -9,6 +9,23 @@
 	</classpathentry>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/google-play-services_lib"/>
+	<classpathentry exported="true" kind="lib" path="libs/adstirwebview.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/adcolony.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-interstitial-imobile.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-interstitial-nend.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-videoreward-adcolony.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-videoreward-applovin.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-videoreward-maio.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-videoreward-unityads.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-videoreward-vungle.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/applovin-sdk-6.1.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/dagger-2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/imobileSdkAds.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/javax.inject-1.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/legacyinterstitial.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/maio.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/nendSDK-2.6.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/vungle-publisher-adaptive-id-3.3.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="libs/android-support-v4.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

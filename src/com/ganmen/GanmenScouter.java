@@ -61,6 +61,7 @@ import com.facepp.http.PostParameters;
 import com.ganmen.AnalyticsApplication;
 import com.google.android.gms.analytics.HitBuilders;
 
+
 public class GanmenScouter extends Activity {
 	private final int WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT;
 	private final String API_KEY = "b090f5a8d9c833fa9ef8bc6d2bc4e647";
@@ -89,6 +90,8 @@ public class GanmenScouter extends Activity {
     Activity root_act = this; 
     
     boolean called_intent = false;
+ 
+
     
     @Override
     public void onStart() {
@@ -102,9 +105,21 @@ public class GanmenScouter extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.main);
-
+        setContentView(R.layout.main);        
         setup_cam_and_preview();
+		com.ad_stir.webview.AdstirMraidView adview = new com.ad_stir.webview.AdstirMraidView(
+			    this,
+			    "MEDIA-69c5161",
+			    1,
+			    com.ad_stir.webview.AdstirMraidView.AdSize.Size320x50,
+			    3);
+		FrameLayout preview = (FrameLayout) findViewById(R.id.cameraPreview);
+		preview.addView(adview);
+
+		tv_top = new TextView(this);
+		tv_top.setTextColor(Color.RED);
+		tv_top.setText("ここに結果を出すよ");
+		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);
     }
 	
 	private void setup_cam_and_preview(){        
@@ -146,7 +161,7 @@ public class GanmenScouter extends Activity {
 		mCamPreview = new CameraPreview(this, mCam);
 
 		preview.addView(mCamPreview);
-
+			
 		// mCamPreview に タッチイベントを設定
 		mCamPreview.setOnTouchListener(new View.OnTouchListener() {
 			public boolean onTouch(View v, MotionEvent event) {
@@ -165,12 +180,6 @@ public class GanmenScouter extends Activity {
 				return true;
 			}
 		});
-
-		tv_top = new TextView(this);
-		tv_top.setTextColor(Color.RED);
-		tv_top.setText("ここに結果を出すよ");
-		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);
-		
 	}
 
     // AF完了時のコールバック
@@ -285,7 +294,9 @@ public class GanmenScouter extends Activity {
             	AnalyticsApplication.tracker().send(new HitBuilders.EventBuilder()
             		    .setCategory("Action")
             		    .setAction("TakePic")
-            		    .build());            	
+            		    .build());
+          
+                
             	called_intent = true;
                 Intent intent = new Intent();
                 intent.setAction(Intent.ACTION_SEND);
@@ -295,6 +306,8 @@ public class GanmenScouter extends Activity {
                 startActivityForResult(Intent.createChooser(intent, String.valueOf(result_val) + "点を共有（しない場合は端末の戻るボタンを押して下さい）"), 101);
             } catch (Exception e) {
             }
+            
+
             
             // takePicture するとプレビューが停止するので、再度プレビュースタート
             mCam.startPreview();             
@@ -328,18 +341,19 @@ public class GanmenScouter extends Activity {
 //			setup_cam_and_preview(false);
 //			called_intent = false;
 //		}
+	    
 		mCam.startPreview();		
 	}
 
     @Override
     protected void onPause() {
-        super.onPause();
-//        // カメラ破棄インスタンスを解放
-//        if (mCam != null) {
-//            mCam.release();
-//            mCam = null;
-//        }
+        super.onPause();    	
     }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }    
 
 	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {

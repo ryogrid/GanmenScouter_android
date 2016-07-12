@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="com.ganmen"
-      android:versionCode="16"
-      android:versionName="16.0">
+      android:versionCode="18"
+      android:versionName="18.0">
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -61,4 +61,39 @@
     </application>    
     <uses-sdk android:minSdkVersion="3" />
 
+<activity android:name="com.jirbo.adcolony.AdColonyOverlay"
+    android:configChanges="keyboardHidden|orientation|screenSize"
+    android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
+<activity android:name="com.jirbo.adcolony.AdColonyFullscreen"
+    android:configChanges="keyboardHidden|orientation|screenSize"
+    android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+<activity android:name="com.jirbo.adcolony.AdColonyBrowser"
+    android:configChanges="keyboardHidden|orientation|screenSize"
+    android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+
+<activity android:name="com.applovin.adview.AppLovinInterstitialActivity" />
+<activity android:name="com.applovin.adview.AppLovinConfirmationActivity" />
+
+<activity android:name="com.ad_stir.videoincentive.AdstirFullscreenActivity"
+    android:configChanges="fontScale|keyboard|keyboardHidden|locale|mnc|mcc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|touchscreen"
+    android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+
+<activity
+    android:name="jp.maio.sdk.android.AdFullscreenActivity"
+    android:label="maiosdk"
+    android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize"
+    android:hardwareAccelerated="true"
+    android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
+    <intent-filter>
+        <data android:scheme="jp.maio.sdk.android"/>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+    </intent-filter>
+</activity>
+
+<activity
+    android:name="com.vungle.publisher.FullScreenAdActivity"
+    android:configChanges="keyboardHidden|orientation|screenSize"
+    android:theme="@android:style/Theme.NoTitleBar.Fullscreen"/>
 </manifest> 

@@ -1,0 +1,6 @@
+# view res/layout/unityads_view_video_play.xml #generated:10
+-keep class com.unity3d.ads.android.video.UnityAdsVideoView { <init>(...); }
+
+# view AndroidManifest.xml #generated:12
+-keep class com.unity3d.ads.android.view.UnityAdsFullscreenActivity { <init>(...); }
+
