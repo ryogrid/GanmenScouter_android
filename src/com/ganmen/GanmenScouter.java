@@ -110,10 +110,11 @@ public class GanmenScouter extends Activity {
 		com.ad_stir.webview.AdstirMraidView adview = new com.ad_stir.webview.AdstirMraidView(
 			    this,
 			    "MEDIA-69c5161",
-			    1,
+			    2,
 			    com.ad_stir.webview.AdstirMraidView.AdSize.Size320x50,
 			    3);
 		FrameLayout preview = (FrameLayout) findViewById(R.id.cameraPreview);
+		adview.setBottom(500);
 		preview.addView(adview);
 
 		tv_top = new TextView(this);
