@@ -43,6 +43,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.view.ViewGroup;
@@ -61,6 +62,12 @@ import com.facepp.http.PostParameters;
 import com.ganmen.AnalyticsApplication;
 import com.google.android.gms.analytics.HitBuilders;
 
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 
 public class GanmenScouter extends Activity {
 	private final int WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -91,7 +98,7 @@ public class GanmenScouter extends Activity {
     
     boolean called_intent = false;
  
-
+    InterstitialAd mInterstitialAd;
     
     @Override
     public void onStart() {
@@ -113,16 +120,42 @@ public class GanmenScouter extends Activity {
 			    2,
 			    com.ad_stir.webview.AdstirMraidView.AdSize.Size320x50,
 			    3);
-		FrameLayout preview = (FrameLayout) findViewById(R.id.cameraPreview);
+		RelativeLayout preview = (RelativeLayout) findViewById(R.id.cameraPreview);
 		adview.setBottom(500);
 		preview.addView(adview);
 
+		
+		
 		tv_top = new TextView(this);
 		tv_top.setTextColor(Color.RED);
 		tv_top.setText("ここに結果を出すよ");
 		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);
+		
+		MobileAds.initialize(getApplicationContext(), "ca-app-pub-3869533485696941/9899777318");
+	    mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId("ca-app-pub-3869533485696941/9899777318");
+
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdClosed() {
+                requestNewInterstitial();
+            }
+        });
+
+        requestNewInterstitial();
+        
+        AdView mAdView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
     }
 	
+    private void requestNewInterstitial() {
+        AdRequest adRequest = new AdRequest.Builder()
+                  .addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
+                  .build();
+
+        mInterstitialAd.loadAd(adRequest);
+    }
 	private void setup_cam_and_preview(){        
         // カメラインスタンスの取得
         try {
@@ -157,7 +190,7 @@ public class GanmenScouter extends Activity {
 
 
 		// FrameLayout に CameraPreview クラスを設定
-		FrameLayout preview = (FrameLayout) findViewById(R.id.cameraPreview);
+		RelativeLayout preview = (RelativeLayout) findViewById(R.id.cameraPreview);
 		
 		mCamPreview = new CameraPreview(this, mCam);
 
@@ -304,11 +337,13 @@ public class GanmenScouter extends Activity {
                 intent.setType("text/plain");
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra(Intent.EXTRA_TEXT, "顔面偏差値 " + String.valueOf(result_val) + "点でした! http://bit.ly/1NbvhcO  #顔面スカウター");
-                startActivityForResult(Intent.createChooser(intent, String.valueOf(result_val) + "点を共有（しない場合は端末の戻るボタンを押して下さい）"), 101);
+                startActivityForResult(Intent.createChooser(intent, String.valueOf(result_val) + "点を共有（しない場合は端末の戻るボタンを押してからアプリ再起動して下さい）"), 101);
             } catch (Exception e) {
             }
-            
 
+            if (mInterstitialAd.isLoaded()) {
+                mInterstitialAd.show();
+            }
             
             // takePicture するとプレビューが停止するので、再度プレビュースタート
             mCam.startPreview();             
