@@ -33,6 +33,7 @@ import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.util.Log;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -61,7 +62,7 @@ import com.facepp.http.PostParameters;
 
 import com.ganmen.AnalyticsApplication;
 import com.google.android.gms.analytics.HitBuilders;
-
+import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.AdListener;
@@ -78,9 +79,8 @@ public class GanmenScouter extends Activity {
     static private int width = -1;
     static private int height = -1;
     
-	private Button button1;
+	private Button mchange_btn;
 
-	private EditText edit;
 	private TextView tv_top;
 	
     // カメラインスタンス
@@ -91,6 +91,8 @@ public class GanmenScouter extends Activity {
 
     // 画面タッチの2度押し禁止用フラグ
     private boolean mIsTake = false;
+    
+    private boolean isMaleMode = false;
     
     View rootView_ = null;
     
@@ -105,7 +107,11 @@ public class GanmenScouter extends Activity {
       super.onStart();
    // Obtain the shared Tracker instance.
       AnalyticsApplication.tracker().setScreenName("main screen");
-      AnalyticsApplication.tracker().send(new HitBuilders.ScreenViewBuilder().build());      
+      AnalyticsApplication.tracker().send(new HitBuilders.ScreenViewBuilder().build());
+      
+      Tracker t = AnalyticsApplication.tracker();
+      // Enable Display Features.
+      t.enableAdvertisingIdCollection(true);
     }    
     
 	@Override
@@ -114,21 +120,19 @@ public class GanmenScouter extends Activity {
 
         setContentView(R.layout.main);        
         setup_cam_and_preview();
-		com.ad_stir.webview.AdstirMraidView adview = new com.ad_stir.webview.AdstirMraidView(
-			    this,
-			    "MEDIA-69c5161",
-			    2,
-			    com.ad_stir.webview.AdstirMraidView.AdSize.Size320x50,
-			    3);
+//		com.ad_stir.webview.AdstirMraidView adview = new com.ad_stir.webview.AdstirMraidView(
+//			    this,
+//			    "MEDIA-69c5161",
+//			    2,
+//			    com.ad_stir.webview.AdstirMraidView.AdSize.Size320x50,
+//			    3);
+//		adview.setBottom(500);
+//		preview.addView(adview);        
 		RelativeLayout preview = (RelativeLayout) findViewById(R.id.cameraPreview);
-		adview.setBottom(500);
-		preview.addView(adview);
 
-		
-		
 		tv_top = new TextView(this);
 		tv_top.setTextColor(Color.RED);
-		tv_top.setText("ここに結果を出すよ");
+		tv_top.setText("　　　　　　　　　　　　　　　画面タッチで測定!");
 		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);
 		
 		MobileAds.initialize(getApplicationContext(), "ca-app-pub-3869533485696941/9899777318");
@@ -147,6 +151,22 @@ public class GanmenScouter extends Activity {
         AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
+        
+		mchange_btn = new Button(this);
+		mchange_btn.setText("男性撮影モードへ切替");
+		mchange_btn.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				if(isMaleMode == false){
+					isMaleMode = true;
+					mchange_btn.setText("女性撮影モードへ切替");					
+				}else{
+					isMaleMode = false;
+					mchange_btn.setText("男性撮影モードへ切替");					
+				}
+
+			}
+		});
+		preview.addView(mchange_btn);        
     }
 	
     private void requestNewInterstitial() {
@@ -317,10 +337,16 @@ public class GanmenScouter extends Activity {
 
             fos = null;
 
-            double tmp = measure_similarity(get_face_id("japanese_bijin.png"), get_face_id(shrinked_data));
+            double tmp = 0;
+            if(!isMaleMode){
+            	tmp = measure_similarity(get_face_id("japanese_bijin.png"), get_face_id(shrinked_data));	
+            }else{
+            	tmp = measure_similarity(get_face_id("otoko_ikemen.png"), get_face_id(shrinked_data));            	
+            }
+            
             double result_val = 50 + 2 * (tmp - 46);
             result_val = Math.floor(result_val);
-            tv_top.setText(String.valueOf(result_val) + "点");
+//            tv_top.setText(String.valueOf(result_val) + "点");
             
             mIsTake = false;
             
@@ -545,11 +571,6 @@ public class GanmenScouter extends Activity {
 		}
 		
 		return ret;
-	}
-	
-	private void measure_goodness() {		
-		//tv_top.setText(get_face_id("japanese_bijin.png"));
-		tv_top.setText(String.valueOf(measure_similarity(get_face_id("japanese_bijin.png"), get_face_id("i320.jpeg"))));
 	}
 	
     private static int getCameraDisplayOrientation(Activity activity) {
