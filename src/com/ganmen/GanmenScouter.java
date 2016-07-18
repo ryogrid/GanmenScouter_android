@@ -37,6 +37,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -63,6 +64,7 @@ import com.facepp.http.PostParameters;
 import com.ganmen.AnalyticsApplication;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
+import com.google.android.gms.security.ProviderInstaller.ProviderInstallListener;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.AdListener;
@@ -80,11 +82,13 @@ public class GanmenScouter extends Activity {
     static private int height = -1;
     
 	private Button mchange_btn;
+	private Button incam_btn;
 
 	private TextView tv_top;
 	
     // カメラインスタンス
     private Camera mCam = null;
+    private Camera inCam = null;
 
     // カメラプレビュークラス
     private CameraPreview mCamPreview = null;
@@ -93,6 +97,7 @@ public class GanmenScouter extends Activity {
     private boolean mIsTake = false;
     
     private boolean isMaleMode = false;
+    private boolean isInCamMode = false;
     
     View rootView_ = null;
     
@@ -102,6 +107,17 @@ public class GanmenScouter extends Activity {
  
     InterstitialAd mInterstitialAd;
     
+    RelativeLayout preview;    
+    
+    private boolean hasInCam(){
+    	int numberOfCameras = Camera.getNumberOfCameras();
+    	if(numberOfCameras == 2){
+    		return true;
+    	}else{
+        	return false;    		
+    	}
+    }
+
     @Override
     public void onStart() {
       super.onStart();
@@ -128,7 +144,7 @@ public class GanmenScouter extends Activity {
 //			    3);
 //		adview.setBottom(500);
 //		preview.addView(adview);        
-		RelativeLayout preview = (RelativeLayout) findViewById(R.id.cameraPreview);
+		preview = (RelativeLayout) findViewById(R.id.cameraPreview);
 
 		tv_top = new TextView(this);
 		tv_top.setTextColor(Color.RED);
@@ -166,7 +182,30 @@ public class GanmenScouter extends Activity {
 
 			}
 		});
-		preview.addView(mchange_btn);        
+		preview.addView(mchange_btn); 
+		
+//		RelativeLayout main_view = (RelativeLayout) findViewById(R.id.main);
+		incam_btn = (Button) findViewById(R.id.incam_btn);
+		if (hasInCam()) {
+			incam_btn.setText("インカムモードへ切替");
+			incam_btn.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					if (isInCamMode == false) {
+						isInCamMode = true;
+//						incam_btn.setText("背面カメラモードへ切替");
+						incam_btn.setVisibility(View.INVISIBLE);
+						setup_in_cam_and_preview();
+					} else {
+						isInCamMode = false;
+						incam_btn.setText("インカムモードへ切替");
+						setup_cam_and_preview();
+					}
+				}
+			});
+		} else {
+			incam_btn.setText("インカム無効");
+		}
+//		main_view.addView(incam_btn); 			
     }
 	
     private void requestNewInterstitial() {
@@ -179,7 +218,9 @@ public class GanmenScouter extends Activity {
 	private void setup_cam_and_preview(){        
         // カメラインスタンスの取得
         try {
-            mCam = Camera.open();
+        	if(mCam == null){
+                mCam = Camera.open(0);        		
+        	}
         } catch (Exception e) {
             // エラー
             this.finish();
@@ -209,7 +250,6 @@ public class GanmenScouter extends Activity {
         params.setPreviewSize(width, height);
 
 
-		// FrameLayout に CameraPreview クラスを設定
 		RelativeLayout preview = (RelativeLayout) findViewById(R.id.cameraPreview);
 		
 		mCamPreview = new CameraPreview(this, mCam);
@@ -236,12 +276,133 @@ public class GanmenScouter extends Activity {
 		});
 	}
 
+	 public static void setCameraDisplayOrientation(Activity activity,
+	         int cameraId, android.hardware.Camera camera) {
+	     android.hardware.Camera.CameraInfo info =
+	             new android.hardware.Camera.CameraInfo();
+	     android.hardware.Camera.getCameraInfo(cameraId, info);
+	     int rotation = activity.getWindowManager().getDefaultDisplay()
+	             .getRotation();
+	     int degrees = 0;
+	     switch (rotation) {
+	         case Surface.ROTATION_0: degrees = 0; break;
+	         case Surface.ROTATION_90: degrees = 90; break;
+	         case Surface.ROTATION_180: degrees = 180; break;
+	         case Surface.ROTATION_270: degrees = 270; break;
+	     }
+
+	     int result;
+	     if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+	         result = (info.orientation + degrees) % 360;
+	         result = (360 - result) % 360;  // compensate the mirror
+	     } else {  // back-facing
+	         result = (info.orientation - degrees + 360) % 360;
+	     }
+	     camera.setDisplayOrientation(result);
+	 }
+	 
+	private void setup_in_cam_and_preview(){        
+		RelativeLayout preview = (RelativeLayout) findViewById(R.id.cameraPreview);
+		preview.removeView(mCamPreview);
+		
+		// カメラインスタンスの取得
+        try {
+            // 現在利用しているカメラを解放
+            if (mCam != null) {
+                mCam.stopPreview();
+                mCam.release();
+                mCam = null;
+            }        	
+        	if(inCam == null){
+                inCam = Camera.open(1); 
+        	}
+        } catch (Exception e) {
+            // エラー
+            this.finish();
+            System.out.println();
+        }
+
+        Camera.Parameters params = inCam.getParameters();
+        
+        int min_width = -1;	
+        //Picture解像度取得
+        List<Size> supportedPictureSizes = params.getSupportedPictureSizes();
+        if (supportedPictureSizes != null && supportedPictureSizes.size() > 1) {
+            for(int i=0;i<supportedPictureSizes.size();i++){
+                Size size = supportedPictureSizes.get(i);
+                //解像度表示
+                System.out.println("picture width:"+size.width+" height:"+size.height);
+                if(min_width == -1){
+                	width = size.width;
+                	height = size.height;
+                }else if(size.width < width){
+                	width = size.width;
+                	height = size.height;                	
+                }
+            }
+        }           
+        
+        params.setPictureSize(width, height);
+        params.setPreviewSize(width, height);
+//        inCam.setParameters(params);
+		
+		mCamPreview = new CameraPreview(this, inCam);
+
+        setCameraDisplayOrientation(this, 1, inCam);
+        
+		preview.addView(mCamPreview);
+		mchange_btn = new Button(this);
+		mchange_btn.setText("男性撮影モードへ切替");
+		mchange_btn.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				if(isMaleMode == false){
+					isMaleMode = true;
+					mchange_btn.setText("女性撮影モードへ切替");					
+				}else{
+					isMaleMode = false;
+					mchange_btn.setText("男性撮影モードへ切替");					
+				}
+
+			}
+		});
+		preview.addView(mchange_btn);
+		tv_top = new TextView(this);
+		tv_top.setTextColor(Color.RED);
+		tv_top.setText("　　　　　　　　　　　　　　　画面タッチで測定!");
+		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);		
+		
+			
+		// mCamPreview に タッチイベントを設定
+		mCamPreview.setOnTouchListener(new View.OnTouchListener() {
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					if (!mIsTake) {
+						// 撮影中の2度押し禁止用フラグ
+						mIsTake = true;
+						if (inCam != null) {
+							// 撮影実行(AF開始)
+							inCam.autoFocus(autoFocusListener_);
+						}
+						// 画像取得
+						// mCam.takePicture(null, null, mPicJpgListener);
+					}
+				}
+				return true;
+			}
+		});
+	}	
+
     // AF完了時のコールバック
     private Camera.AutoFocusCallback autoFocusListener_ = new Camera.AutoFocusCallback() {
         @Override
         public void onAutoFocus(boolean success, Camera camera) {
             camera.autoFocus(null);
-            mCam.takePicture(null, null, mPicJpgListener);
+            if(mCam == null){
+            	inCam.takePicture(null, null, mPicJpgListener);            	
+            }else{
+            	mCam.takePicture(null, null, mPicJpgListener);	
+            }
+            
         }
     };
     
@@ -259,7 +420,13 @@ public class GanmenScouter extends Activity {
                     data, 0, data.length);            
             int degrees = getCameraDisplayOrientation(root_act); // 後述のメソッド
             Matrix m = new Matrix();
-            m.postRotate(degrees);
+            
+            if(mCam == null){
+            	m.postRotate(270);
+            }else{
+                m.postRotate(degrees);            	
+            }
+
             Bitmap rotatedBitmap = Bitmap.createBitmap(origBitmap, 0, 0, origBitmap.getWidth(), origBitmap.getHeight(), m, false);
             
 			// ---
@@ -372,7 +539,12 @@ public class GanmenScouter extends Activity {
             }
             
             // takePicture するとプレビューが停止するので、再度プレビュースタート
-            mCam.startPreview();             
+            if(mCam == null){
+            	inCam.startPreview();
+            }else{
+            	mCam.startPreview();             	
+            }
+            
         }
     };
 
@@ -404,7 +576,11 @@ public class GanmenScouter extends Activity {
 //			called_intent = false;
 //		}
 	    
-		mCam.startPreview();		
+		if(mCam == null){
+			inCam.startPreview();
+		}else{
+			mCam.startPreview();		
+		}
 	}
 
     @Override
@@ -591,5 +767,6 @@ public class GanmenScouter extends Activity {
             break;
         }
         return (90 + 360 - degrees) % 360;
-    }	
+    }
+    
 }
