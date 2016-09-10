@@ -21,6 +21,14 @@
 		android:layout_above="@+id/adView"        
         android:text="Button" />
 
+    <Button
+        android:id="@+id/pselect_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+		android:layout_toRightOf="@+id/incam_btn"
+		android:layout_above="@+id/adView"		        
+        android:text="Button" />
+        
     <com.google.android.gms.ads.AdView
         android:id="@+id/adView"
         android:layout_width="wrap_content"

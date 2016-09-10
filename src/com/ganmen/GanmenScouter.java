@@ -3,6 +3,7 @@ package com.ganmen;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,10 +28,14 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
+import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -135,7 +140,7 @@ public class GanmenScouter extends Activity {
 		super.onCreate(savedInstanceState);
 
         setContentView(R.layout.main);        
-        setup_cam_and_preview();
+        setup_cam_and_preview(true);
 //		com.ad_stir.webview.AdstirMraidView adview = new com.ad_stir.webview.AdstirMraidView(
 //			    this,
 //			    "MEDIA-69c5161",
@@ -159,6 +164,11 @@ public class GanmenScouter extends Activity {
             @Override
             public void onAdClosed() {
                 requestNewInterstitial();
+                if(mCam == null){
+                	setup_in_cam_and_preview();
+                }else{
+                	setup_cam_and_preview(false);      	
+                }
             }
         });
 
@@ -168,23 +178,6 @@ public class GanmenScouter extends Activity {
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
         
-		mchange_btn = new Button(this);
-		mchange_btn.setText("男性撮影モードへ切替");
-		mchange_btn.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				if(isMaleMode == false){
-					isMaleMode = true;
-					mchange_btn.setText("女性撮影モードへ切替");					
-				}else{
-					isMaleMode = false;
-					mchange_btn.setText("男性撮影モードへ切替");					
-				}
-
-			}
-		});
-		preview.addView(mchange_btn); 
-		
-//		RelativeLayout main_view = (RelativeLayout) findViewById(R.id.main);
 		incam_btn = (Button) findViewById(R.id.incam_btn);
 		if (hasInCam()) {
 			incam_btn.setText("インカムモードへ切替");
@@ -195,19 +188,65 @@ public class GanmenScouter extends Activity {
 //						incam_btn.setText("背面カメラモードへ切替");
 						incam_btn.setVisibility(View.INVISIBLE);
 						setup_in_cam_and_preview();
-					} else {
-						isInCamMode = false;
-						incam_btn.setText("インカムモードへ切替");
-						setup_cam_and_preview();
 					}
 				}
 			});
 		} else {
 			incam_btn.setText("インカム無効");
 		}
-//		main_view.addView(incam_btn); 			
+
+		Button pselect_btn = (Button) findViewById(R.id.pselect_btn);
+		pselect_btn.setText("撮影済画像を判定");
+		pselect_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                Intent intent = new Intent(Intent.ACTION_CHOOSER);
+//                intent.addCategory(Intent.CATEGORY_OPENABLE);
+//                intent.setType("image/*");
+//                startActivityForResult(intent, 1001);
+                
+//                Intent intentGallery;
+//                intentGallery = new Intent(Intent.ACTION_GET_CONTENT);
+//                intentGallery.setType("image/*");
+//                startActivityForResult(intentGallery, 1000);
+                
+                Intent i = new Intent( Intent.ACTION_PICK, Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(i, 1);
+            }
+            
+        });		
     }
 	
+	@Override protected void onActivityResult( int requestCode, int resultCode, Intent data) { 
+		super.onActivityResult(requestCode, resultCode, data); 
+		if (requestCode == 1 && resultCode == RESULT_OK && null != data) { 
+			Uri selectedImage = data.getData(); 
+			Bitmap bmap = null;
+			try {
+				bmap = getBitmapFromUri(selectedImage);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			PictureSelected(bmap);
+//			String[] filePathColumn = { Media.DATA }; 
+//			Cursor cursor = getContentResolver().query( selectedImage, filePathColumn, null, null, null); 
+//			cursor.moveToFirst(); 
+//			int columnIndex = cursor.getColumnIndex(filePathColumn[0]); 
+//			String picturePath = cursor.getString(columnIndex); 
+//			cursor.close();
+		}
+	}
+
+    private Bitmap getBitmapFromUri(Uri uri) throws IOException {
+        ParcelFileDescriptor parcelFileDescriptor =
+                getContentResolver().openFileDescriptor(uri, "r");
+        FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+        Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+        parcelFileDescriptor.close();
+        return image;
+    }
+    
     private void requestNewInterstitial() {
         AdRequest adRequest = new AdRequest.Builder()
                   .addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
@@ -215,9 +254,19 @@ public class GanmenScouter extends Activity {
 
         mInterstitialAd.loadAd(adRequest);
     }
-	private void setup_cam_and_preview(){        
+	private void setup_cam_and_preview(boolean is_first){
+		if(is_first==false){
+			RelativeLayout preview = (RelativeLayout) findViewById(R.id.cameraPreview);
+			preview.removeView(mCamPreview);			
+		}
+		
         // カメラインスタンスの取得
         try {
+        	if(mCam!=null){
+                mCam.stopPreview();
+                mCam.release();
+                mCam = null;	
+        	}
         	if(mCam == null){
                 mCam = Camera.open(0);        		
         	}
@@ -274,6 +323,28 @@ public class GanmenScouter extends Activity {
 				return true;
 			}
 		});
+
+		tv_top = new TextView(this);
+		tv_top.setTextColor(Color.RED);
+		tv_top.setText("　　　　　　　　　　　　　　　画面タッチで測定!");
+		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);
+		
+		mchange_btn = new Button(this);
+		mchange_btn.setText("男性撮影モードへ切替");
+		mchange_btn.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				if(isMaleMode == false){
+					isMaleMode = true;
+					mchange_btn.setText("女性撮影モードへ切替");					
+				}else{
+					isMaleMode = false;
+					mchange_btn.setText("男性撮影モードへ切替");					
+				}
+			}
+		});
+		preview.addView(mchange_btn);
+		
+		
 	}
 
 	 public static void setCameraDisplayOrientation(Activity activity,
@@ -311,11 +382,15 @@ public class GanmenScouter extends Activity {
             if (mCam != null) {
                 mCam.stopPreview();
                 mCam.release();
-                mCam = null;
-            }        	
-        	if(inCam == null){
-                inCam = Camera.open(1); 
-        	}
+                mCam = null;            
+            }
+            if (inCam != null) {
+            	inCam.stopPreview();
+            	inCam.release();
+            	inCam = null;
+            }            
+            inCam = Camera.open(1);
+            
         } catch (Exception e) {
             // エラー
             this.finish();
@@ -405,6 +480,96 @@ public class GanmenScouter extends Activity {
             
         }
     };
+    
+    private void PictureSelected(Bitmap origBitmap){
+		// もし、画像が大きかったら縮小して読み込む
+		// 今回はimageSizeMaxの大きさに合わせる
+		Bitmap shrinked_bitmap;
+		int imageSizeMax = 240;
+		float imageScaleWidth = origBitmap.getWidth() / imageSizeMax;
+		float imageScaleHeight = origBitmap.getHeight() / imageSizeMax;
+
+		// もしも、縮小できるサイズならば、縮小して読み込む
+		if (imageScaleWidth > 2 && imageScaleHeight > 2) {
+			BitmapFactory.Options imageOptions2 = new BitmapFactory.Options();
+
+			// 縦横、小さい方に縮小するスケールを合わせる
+			int imageScale = (int) Math
+					.floor((imageScaleWidth > imageScaleHeight ? imageScaleHeight : imageScaleWidth));
+
+			// inSampleSizeには2のべき上が入るべきなので、imageScaleに最も近く、かつそれ以下の2のべき上の数を探す
+			for (int i = 2; i <= imageScale; i *= 2) {
+				imageOptions2.inSampleSize = i;
+			}
+
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			origBitmap.compress(CompressFormat.JPEG, 100, baos);
+			byte[] rot_bytes = baos.toByteArray();
+			ByteArrayInputStream bis = new ByteArrayInputStream(rot_bytes);
+			shrinked_bitmap = BitmapFactory.decodeStream(bis, null, imageOptions2);
+			try {
+				bis.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}				
+			System.out.println("Sample Size: 1/" + imageOptions2.inSampleSize);				
+		} else {
+			shrinked_bitmap = origBitmap;
+		}
+		// ---
+                                            
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        shrinked_bitmap.compress(CompressFormat.JPEG, 100, baos);
+        byte[] shrinked_data = baos.toByteArray();
+        
+        String saveDir = Environment.getExternalStorageDirectory().getPath() + "/GanmenScouter";
+        // SD カードフォルダを取得
+        File file = new File(saveDir);
+
+        // フォルダ作成
+        if (!file.exists()) {
+            if (!file.mkdir()) {
+                System.out.println("error: mkdir failed");
+            }
+        }
+
+        // 画像保存パス
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        String imgPath = saveDir + "/" + sf.format(cal.getTime()) + ".jpg";
+
+        // ファイル保存
+        FileOutputStream fos;
+        try {
+            fos = new FileOutputStream(imgPath, true);
+            fos.write(shrinked_data);
+            fos.close();
+
+            // アンドロイドのデータベースへ登録
+            // (登録しないとギャラリーなどにすぐに反映されないため)
+            registAndroidDB(imgPath);
+
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        fos = null;
+
+        double tmp = 0;
+        if(!isMaleMode){
+        	tmp = measure_similarity(get_face_id("japanese_bijin.png"), get_face_id(shrinked_data));	
+        }else{
+        	tmp = measure_similarity(get_face_id("otoko_ikemen.png"), get_face_id(shrinked_data));            	
+        }
+        
+        double result_val = 50 + 2 * (tmp - 46);
+        result_val = Math.floor(result_val);
+        
+		Button pselect_btn = (Button) findViewById(R.id.pselect_btn);
+		pselect_btn.setText(result_val + "点！");
+		
+//        tv_top.setText("　　　　　　　　　　　　　　　" + result_val + "点！");
+    }
     
     /**
      * JPEG データ生成完了時のコールバック
@@ -516,6 +681,13 @@ public class GanmenScouter extends Activity {
 //            tv_top.setText(String.valueOf(result_val) + "点");
             
             mIsTake = false;
+ 
+            // takePicture するとプレビューが停止するので、再度プレビュースタート
+            if(mCam == null){
+            	inCam.startPreview();
+            }else{
+            	mCam.startPreview();             	
+            }
             
             try {
             	AnalyticsApplication.tracker().send(new HitBuilders.EventBuilder()
@@ -530,7 +702,7 @@ public class GanmenScouter extends Activity {
                 intent.setType("text/plain");
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra(Intent.EXTRA_TEXT, "顔面偏差値 " + String.valueOf(result_val) + "点でした! http://bit.ly/1NbvhcO  #顔面スカウター");
-                startActivityForResult(Intent.createChooser(intent, String.valueOf(result_val) + "点を共有（しない場合は端末の戻るボタンを押してからアプリ再起動して下さい）"), 101);
+                startActivityForResult(Intent.createChooser(intent, String.valueOf(result_val) + "点を共有"), 101);
             } catch (Exception e) {
             }
 
@@ -538,12 +710,12 @@ public class GanmenScouter extends Activity {
                 mInterstitialAd.show();
             }
             
-            // takePicture するとプレビューが停止するので、再度プレビュースタート
-            if(mCam == null){
-            	inCam.startPreview();
-            }else{
-            	mCam.startPreview();             	
-            }
+//            // takePicture するとプレビューが停止するので、再度プレビュースタート
+//            if(mCam == null){
+//            	inCam.startPreview();
+//            }else{
+//            	mCam.startPreview();             	
+//            }
             
         }
     };
