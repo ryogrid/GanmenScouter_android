@@ -27,11 +27,11 @@ import com.facepp.error.FaceppParseException;
  */
 public class HttpRequests {
 	
-	static final private String WEBSITE_CN = "https://apicn.faceplusplus.com/v2/";
+	static final private String WEBSITE_CN = "https://api-us.faceplusplus.com/facepp/v3/";
 	//static final private String WEBSITE_CN = "http://localhost:8080/";
-	static final private String DWEBSITE_CN = "http://apicn.faceplusplus.com/v2/";
-	static final private String WEBSITE_US = "https://apius.faceplusplus.com/v2/";
-	static final private String DWEBSITE_US = "http://apius.faceplusplus.com/v2/";
+	static final private String DWEBSITE_CN = "https://api-us.faceplusplus.com/facepp/v3/";
+	static final private String WEBSITE_US = "https://api-us.faceplusplus.com/facepp/v3/";
+	static final private String DWEBSITE_US = "https://api-us.faceplusplus.com/facepp/v3/";
 	 
 	static final private int BUFFERSIZE = 1048576;
 	static final private int TIMEOUT = 30000;
@@ -302,9 +302,9 @@ public class HttpRequests {
 		try {
 			//url = new URL(webSite+control+"/"+action);
 			if(action.equals("compare")){
-				url = new URL(webSite+control+"/"+action+"?api_key="+apiKey+"&api_secret="+apiSecret+"&face_id1="+params.get_face_id1()+"&face_id2="+params.get_face_id2());				
+				url = new URL(webSite+action+"?api_key="+apiKey+"&api_secret="+apiSecret+"&face_token1="+params.get_face_id1()+"&face_token2="+params.get_face_id2());				
 			}else{ //detection
-				url = new URL(webSite+control+"/"+action+"?api_key="+apiKey+"&api_secret="+apiSecret);				
+				url = new URL(webSite+action+"?api_key="+apiKey+"&api_secret="+apiSecret);				
 			}			
 			urlConn = (HttpURLConnection) url.openConnection();
 			
@@ -374,7 +374,7 @@ public class HttpRequests {
 			HashMap<String, byte[]> multiPart = params.getMultipart();
 			contentsBuilder.append(lineEnd);
 			for (Map.Entry<String, byte[]> entry : multiPart.entrySet()) {
-				if(entry.getKey().equals("img")){
+				if(entry.getKey().equals("image_file")){
 					contentsBuilder.append(twoHyphens + boundary + lineEnd);
 					// outputStream.writeBytes("Content-Disposition: form-data;
 					// name=\"" + entry.getKey() + "\";filename=\"hoge.jpeg\";"+

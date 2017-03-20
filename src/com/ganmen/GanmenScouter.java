@@ -79,8 +79,8 @@ import com.google.android.gms.ads.AdView;
 
 public class GanmenScouter extends Activity {
 	private final int WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT;
-	private final String API_KEY = "b090f5a8d9c833fa9ef8bc6d2bc4e647";
-	private final String API_SECRET = "S0e2ZbFYUSOfXpyfou4B67H5Cklr_4di";
+	private final String API_KEY = "6w7AMUqM_MRztslYVnDGXso6zWPdNdLy";
+	private final String API_SECRET = "cPnh_soPUVuSjThWxBJZEse9ODkB8-IW";
 
     // プレビューサイズ
     static private int width = -1;
@@ -562,8 +562,12 @@ public class GanmenScouter extends Activity {
         	tmp = measure_similarity(get_face_id("otoko_ikemen.png"), get_face_id(shrinked_data));            	
         }
         
-        double result_val = 50 + 2 * (tmp - 46);
+        double result_val = 50 + tmp;
         result_val = Math.floor(result_val);
+
+        if (mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+        }
         
 		Button pselect_btn = (Button) findViewById(R.id.pselect_btn);
 		pselect_btn.setText(result_val + "点！");
@@ -838,9 +842,9 @@ public class GanmenScouter extends Activity {
 		}
 		
 		String ret = null;
-		JSONArray tmp = result.getJSONArray("face");
+		JSONArray tmp = result.getJSONArray("faces");
 		if(tmp.length() > 0){
-			ret = tmp.getJSONObject(0).getString("face_id");
+			ret = tmp.getJSONObject(0).getString("face_token");
 		}
 
 		return ret;    	
@@ -889,9 +893,9 @@ public class GanmenScouter extends Activity {
 		String ret = null;
 		//System.out.println(result);
 		if(result != null){
-			JSONArray tmp = result.getJSONArray("face");
+			JSONArray tmp = result.getJSONArray("faces");
 			if(tmp != null){
-				ret = tmp.getJSONObject(0).getString("face_id");
+				ret = tmp.getJSONObject(0).getString("face_token");
 			}			
 		}
 		
@@ -912,7 +916,7 @@ public class GanmenScouter extends Activity {
 	    double ret = -1;
 		try {
 			 result = httpRequests.recognitionCompare(params);
-			 ret = result.getDouble("similarity");			 
+			 ret = result.getDouble("confidence");			 
 		} catch (FaceppParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

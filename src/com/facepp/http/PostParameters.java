@@ -127,7 +127,7 @@ public class PostParameters {
 	 */
 	public PostParameters setImg(byte[] data, String fileName) {
 		if(fileName.equals("NoName")){
-			multiPart.put("img", data);			
+			multiPart.put("image_file", data);			
 		}else{
 			try {
 				multiPart.put("img", readFileToByte(fileName));
