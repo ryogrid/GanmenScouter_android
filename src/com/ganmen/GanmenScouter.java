@@ -680,7 +680,7 @@ public class GanmenScouter extends Activity {
             	tmp = measure_similarity(get_face_id("otoko_ikemen.png"), get_face_id(shrinked_data));            	
             }
             
-            double result_val = 50 + 2 * (tmp - 46);
+            double result_val = 50 + tmp;
             result_val = Math.floor(result_val);
 //            tv_top.setText(String.valueOf(result_val) + "点");
             
