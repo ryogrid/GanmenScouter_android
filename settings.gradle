@@ -1,0 +1,2 @@
+include ':ganmenScouter_android'
+rootProject.name = "GanmenScouter_android"
