@@ -38,8 +38,6 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -111,6 +109,7 @@ public class GanmenScouter extends Activity {
     @Override
     public void onStart() {
       super.onStart();
+      /*
       // Obtain the shared Tracker instance
 		AnalyticsApplication application = (AnalyticsApplication) getApplication();
 		Tracker mTracker = application.getDefaultTracker();
@@ -122,6 +121,7 @@ public class GanmenScouter extends Activity {
       //Tracker t = AnalyticsApplication.tracker();
       // Enable Display Features.
       mTracker.enableAdvertisingIdCollection(true);
+      */
     }    
     
 	@Override
@@ -683,10 +683,13 @@ public class GanmenScouter extends Activity {
             }
             
             try {
+            	/*
 				((AnalyticsApplication) getApplication()).getDefaultTracker().send(new HitBuilders.EventBuilder()
             		    .setCategory("Action")
             		    .setAction("TakePic")
             		    .build());
+
+            	 */
           
 
             	called_intent = true;

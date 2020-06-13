@@ -5,7 +5,8 @@ dependencies {
     //compile 'com.android.support:support-v4:18.0.0'
     //compile files('libs/javax.inject-1.jar')
     //compile files('libs/legacyinterstitial.jar')
-    compile 'com.google.android.gms:play-services-analytics:10.2.4'
+
+    //compile 'com.google.android.gms:play-services-analytics:10.2.4'
     implementation 'com.google.android.gms:play-services-ads:19.1.0'
 }
 
