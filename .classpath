@@ -2,14 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
-	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-interstitial-imobile.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-interstitial-nend.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-videoreward-adcolony.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-videoreward-applovin.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-videoreward-maio.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-videoreward-unityads.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/androidwebviewmediation-videoreward-vungle.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/applovin-sdk-6.1.5.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/dagger-2.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/imobileSdkAds.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/javax.inject-1.jar"/>
