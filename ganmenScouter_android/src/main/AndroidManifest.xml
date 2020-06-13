@@ -37,7 +37,7 @@
             </intent-filter>            
         </activity>
 
-        <!-- Enable background dispatching to improve delivery on non-Google Play devices -->
+        <!--
         <receiver
             android:name="com.google.android.gms.analytics.AnalyticsReceiver"
             android:enabled="true">
@@ -49,8 +49,10 @@
             android:name="com.google.android.gms.analytics.AnalyticsService"
             android:enabled="true"
             android:exported="false"/>
+        -->
 
         <!-- Enable Google Play Store Campaign reports -->
+        <!--
         <receiver
             android:name="com.google.android.gms.analytics.CampaignTrackingReceiver"
             android:exported="true"
@@ -62,6 +64,7 @@
         <service
             android:name="com.google.android.gms.analytics.CampaignTrackingService"
             android:enabled="true"/>
+        -->
         <activity android:name="com.google.android.gms.ads.AdActivity"
               android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"/>
     </application>
