@@ -1,5 +1,10 @@
 package com.facepp.http;
 
+import com.facepp.error.FaceppParseException;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,11 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.http.HttpConnection;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.facepp.error.FaceppParseException;
+//import org.apache.http.HttpConnection;
 
 /**
  * request to faceplusplus.com<br />
