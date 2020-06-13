@@ -1,20 +1,5 @@
 package com.ganmen;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileDescriptor;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.List;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -29,54 +14,52 @@ import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.provider.MediaStore.Images.Media;
-import android.util.Log;
-import android.view.Display;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver.OnDrawListener;
-import android.view.ViewTreeObserver.OnGlobalFocusChangeListener;
-import android.view.WindowManager;
-import android.widget.EditText;
-import android.widget.FrameLayout;
+import android.widget.Button;
 import android.widget.FrameLayout.LayoutParams;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
-import com.facepp.*;
 import com.facepp.error.FaceppParseException;
 import com.facepp.http.HttpRequests;
 import com.facepp.http.PostParameters;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.List;
 /*
 import com.ganmen.AnalyticsApplication;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.security.ProviderInstaller.ProviderInstallListener;
-import com.google.android.gms.ads.InterstitialAd;
-import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
 */
 
 public class GanmenScouter extends Activity {
@@ -114,8 +97,8 @@ public class GanmenScouter extends Activity {
  
     InterstitialAd mInterstitialAd;
     
-    RelativeLayout preview;    
-    
+    RelativeLayout preview;
+
     private boolean hasInCam(){
     	int numberOfCameras = Camera.getNumberOfCameras();
     	if(numberOfCameras == 2){
@@ -128,13 +111,17 @@ public class GanmenScouter extends Activity {
     @Override
     public void onStart() {
       super.onStart();
-   // Obtain the shared Tracker instance.
-      AnalyticsApplication.tracker().setScreenName("main screen");
-      AnalyticsApplication.tracker().send(new HitBuilders.ScreenViewBuilder().build());
+      // Obtain the shared Tracker instance
+		AnalyticsApplication application = (AnalyticsApplication) getApplication();
+		Tracker mTracker = application.getDefaultTracker();
+
+
+      mTracker.setScreenName("main screen");
+      mTracker.send(new HitBuilders.ScreenViewBuilder().build());
       
-      Tracker t = AnalyticsApplication.tracker();
+      //Tracker t = AnalyticsApplication.tracker();
       // Enable Display Features.
-      t.enableAdvertisingIdCollection(true);
+      mTracker.enableAdvertisingIdCollection(true);
     }    
     
 	@Override
@@ -696,12 +683,12 @@ public class GanmenScouter extends Activity {
             }
             
             try {
-            	AnalyticsApplication.tracker().send(new HitBuilders.EventBuilder()
+				((AnalyticsApplication) getApplication()).getDefaultTracker().send(new HitBuilders.EventBuilder()
             		    .setCategory("Action")
             		    .setAction("TakePic")
             		    .build());
           
-                
+
             	called_intent = true;
                 Intent intent = new Intent();
                 intent.setAction(Intent.ACTION_SEND);
@@ -844,9 +831,18 @@ public class GanmenScouter extends Activity {
 		}
 		
 		String ret = null;
-		JSONArray tmp = result.getJSONArray("faces");
+		JSONArray tmp = null;
+		try {
+			tmp = result.getJSONArray("faces");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 		if(tmp.length() > 0){
-			ret = tmp.getJSONObject(0).getString("face_token");
+			try {
+				ret = tmp.getJSONObject(0).getString("face_token");
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
 		}
 
 		return ret;    	
@@ -895,9 +891,18 @@ public class GanmenScouter extends Activity {
 		String ret = null;
 		//System.out.println(result);
 		if(result != null){
-			JSONArray tmp = result.getJSONArray("faces");
+			JSONArray tmp = null;
+			try {
+				tmp = result.getJSONArray("faces");
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
 			if(tmp != null){
-				ret = tmp.getJSONObject(0).getString("face_token");
+				try {
+					ret = tmp.getJSONObject(0).getString("face_token");
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
 			}			
 		}
 		
@@ -919,7 +924,7 @@ public class GanmenScouter extends Activity {
 		try {
 			 result = httpRequests.recognitionCompare(params);
 			 ret = result.getDouble("confidence");			 
-		} catch (FaceppParseException e) {
+		} catch (FaceppParseException | JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
