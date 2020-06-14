@@ -33,11 +33,9 @@ import android.widget.TextView;
 import com.facepp.error.FaceppParseException;
 import com.facepp.http.HttpRequests;
 import com.facepp.http.PostParameters;
-import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
-import com.google.android.gms.ads.MobileAds;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -144,7 +142,7 @@ public class GanmenScouter extends Activity {
 		tv_top.setTextColor(Color.RED);
 		tv_top.setText("　　　　　　　　　　　　　　　画面タッチで測定!");
 		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);
-		
+/*
 		MobileAds.initialize(getApplicationContext(), "ca-app-pub-3869533485696941/9899777318");
 	    mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId("ca-app-pub-3869533485696941/9899777318");
@@ -162,7 +160,7 @@ public class GanmenScouter extends Activity {
         });
 
         requestNewInterstitial();
-        
+*/
         AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
@@ -237,11 +235,13 @@ public class GanmenScouter extends Activity {
     }
     
     private void requestNewInterstitial() {
+    	/*
         AdRequest adRequest = new AdRequest.Builder()
                   .addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
                   .build();
 
         mInterstitialAd.loadAd(adRequest);
+    	 */
     }
 	private void setup_cam_and_preview(boolean is_first){
 		if(is_first==false){
@@ -701,10 +701,11 @@ public class GanmenScouter extends Activity {
                 startActivityForResult(Intent.createChooser(intent, String.valueOf(result_val) + "点を共有"), 101);
             } catch (Exception e) {
             }
-
+/*
             if (mInterstitialAd.isLoaded()) {
                 mInterstitialAd.show();
             }
+ */
             
 //            // takePicture するとプレビューが停止するので、再度プレビュースタート
 //            if(mCam == null){
