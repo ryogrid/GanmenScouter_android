@@ -1,9 +1,13 @@
 package com.ganmen;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -29,6 +33,9 @@ import android.widget.Button;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.facepp.error.FaceppParseException;
 import com.facepp.http.HttpRequests;
@@ -124,28 +131,15 @@ public class GanmenScouter extends Activity {
       // Enable Display Features.
       mTracker.enableAdvertisingIdCollection(true);
       */
-    }    
-    
+    }
+
+	static final int REQUEST_CODE = 1;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.main);        
-        setup_cam_and_preview(true);
-//		com.ad_stir.webview.AdstirMraidView adview = new com.ad_stir.webview.AdstirMraidView(
-//			    this,
-//			    "MEDIA-69c5161",
-//			    2,
-//			    com.ad_stir.webview.AdstirMraidView.AdSize.Size320x50,
-//			    3);
-//		adview.setBottom(500);
-//		preview.addView(adview);        
-		preview = (RelativeLayout) findViewById(R.id.cameraPreview);
-
-		tv_top = new TextView(this);
-		tv_top.setTextColor(Color.RED);
-		tv_top.setText("　　　　　　　　　　　　　　　画面タッチで測定!");
-		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);
+        setContentView(R.layout.main);
 
 		MobileAds.initialize(this, new OnInitializationCompleteListener() {
 			@Override
@@ -157,6 +151,78 @@ public class GanmenScouter extends Activity {
 				mAdView.loadAd(adRequest);
 			}
 		});
+
+		// Here, thisActivity is the current activity
+		if (ContextCompat.checkSelfPermission(this,
+				Manifest.permission.CAMERA)
+				!= PackageManager.PERMISSION_GRANTED) {
+
+			// Permission is not granted
+			// Should we show an explanation?
+			if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+					Manifest.permission.CAMERA)) {
+				// Show an explanation to the user *asynchronously* -- don't block
+				// this thread waiting for the user's response! After the user
+				// sees the explanation, try again to request the permission.
+				(new AlertDialog.Builder(this)).setMessage("端末の「設定」でカメラの権限を許可してください。")
+						.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int id) {
+								// FIRE ZE MISSILES!
+							}
+						})
+						.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int id) {
+								// User cancelled the dialog
+							}
+						}).create().show();
+			} else {
+				// No explanation needed; request the permission
+				ActivityCompat.requestPermissions(this,
+						new String[]{Manifest.permission.CAMERA}, REQUEST_CODE);
+
+				// REQUEST_CODE is an
+				// app-defined int constant. The callback method gets the
+				// result of the request.
+			}
+		} else {
+			// Permission has already been granted
+		}
+
+		// Here, thisActivity is the current activity
+		if (ContextCompat.checkSelfPermission(this,
+				Manifest.permission.WRITE_EXTERNAL_STORAGE)
+				!= PackageManager.PERMISSION_GRANTED) {
+
+			// Permission is not granted
+			// Should we show an explanation?
+			if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+					Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+				// Show an explanation to the user *asynchronously* -- don't block
+				// this thread waiting for the user's response! After the user
+				// sees the explanation, try again to request the permission.
+				(new AlertDialog.Builder(this)).setMessage("端末の「設定」でストレージへの書き込みの権限を許可してください。")
+						.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int id) {
+								// FIRE ZE MISSILES!
+							}
+						})
+						.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int id) {
+								// User cancelled the dialog
+							}
+						}).create().show();
+			} else {
+				// No explanation needed; request the permission
+				ActivityCompat.requestPermissions(this,
+						new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE);
+
+				// REQUEST_CODE is an
+				// app-defined int constant. The callback method gets the
+				// result of the request.
+			}
+		} else {
+			// Permission has already been granted
+		}
 
 		mInterstitialAd = new InterstitialAd(this);
 		mInterstitialAd.setAdUnitId("ca-app-pub-3869533485696941/9899777318");
@@ -184,7 +250,7 @@ public class GanmenScouter extends Activity {
                 if(mCam == null){
                 	setup_in_cam_and_preview();
                 }else{
-                	setup_cam_and_preview(false);      	
+                	setup_cam_and_preview(false);
                 }
             }
         });
@@ -195,6 +261,22 @@ public class GanmenScouter extends Activity {
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
 */
+
+        setup_cam_and_preview(true);
+//		com.ad_stir.webview.AdstirMraidView adview = new com.ad_stir.webview.AdstirMraidView(
+//			    this,
+//			    "MEDIA-69c5161",
+//			    2,
+//			    com.ad_stir.webview.AdstirMraidView.AdSize.Size320x50,
+//			    3);
+//		adview.setBottom(500);
+//		preview.addView(adview);        
+		preview = (RelativeLayout) findViewById(R.id.cameraPreview);
+
+		tv_top = new TextView(this);
+		tv_top.setTextColor(Color.RED);
+		tv_top.setText("　　　　　　　　　　　　　　　画面タッチで測定!");
+		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);
 
 		incam_btn = (Button) findViewById(R.id.incam_btn);
 		if (hasInCam()) {
