@@ -107,76 +107,49 @@ public class GanmenScouter extends Activity {
     }
 
     private void getPermissions(){
-		// Here, thisActivity is the current activity
 		if (ContextCompat.checkSelfPermission(this,
 				Manifest.permission.CAMERA)
 				!= PackageManager.PERMISSION_GRANTED) {
 
-			// Permission is not granted
-			// Should we show an explanation?
+
 			if (ActivityCompat.shouldShowRequestPermissionRationale(this,
 					Manifest.permission.CAMERA)) {
-				// Show an explanation to the user *asynchronously* -- don't block
-				// this thread waiting for the user's response! After the user
-				// sees the explanation, try again to request the permission.
 				(new AlertDialog.Builder(this)).setMessage("端末の「設定」でカメラの権限を許可してください。")
 						.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
-								// FIRE ZE MISSILES!
 							}
 						})
 						.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
-								// User cancelled the dialog
 							}
 						}).create().show();
 			} else {
-				// No explanation needed; request the permission
 				ActivityCompat.requestPermissions(this,
 						new String[]{Manifest.permission.CAMERA}, REQUEST_CODE);
-
-				// REQUEST_CODE is an
-				// app-defined int constant. The callback method gets the
-				// result of the request.
 			}
 		} else {
-			// Permission has already been granted
 		}
 
-		// Here, thisActivity is the current activity
 		if (ContextCompat.checkSelfPermission(this,
 				Manifest.permission.WRITE_EXTERNAL_STORAGE)
 				!= PackageManager.PERMISSION_GRANTED) {
 
-			// Permission is not granted
-			// Should we show an explanation?
 			if (ActivityCompat.shouldShowRequestPermissionRationale(this,
 					Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-				// Show an explanation to the user *asynchronously* -- don't block
-				// this thread waiting for the user's response! After the user
-				// sees the explanation, try again to request the permission.
 				(new AlertDialog.Builder(this)).setMessage("端末の「設定」でストレージへの書き込みの権限を許可してください。")
 						.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
-								// FIRE ZE MISSILES!
 							}
 						})
 						.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
-								// User cancelled the dialog
 							}
 						}).create().show();
 			} else {
-				// No explanation needed; request the permission
 				ActivityCompat.requestPermissions(this,
 						new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE);
-
-				// REQUEST_CODE is an
-				// app-defined int constant. The callback method gets the
-				// result of the request.
 			}
 		} else {
-			// Permission has already been granted
 		}
 	}
 
@@ -191,11 +164,6 @@ public class GanmenScouter extends Activity {
 			@Override
 			public void onInitializationComplete(InitializationStatus initializationStatus) {
 				requestNewInterstitial();
-/*
-				AdView mAdView = (AdView) findViewById(R.id.adView);
-				AdRequest adRequest = new AdRequest.Builder().build();
-				mAdView.loadAd(adRequest);
- */
 			}
 		});
 
@@ -383,7 +351,6 @@ public class GanmenScouter extends Activity {
             }else{
             	mCam.takePicture(null, null, mPicJpgListener);	
             }
-            
         }
     };
 
@@ -411,7 +378,6 @@ public class GanmenScouter extends Activity {
             Bitmap rotatedBitmap = Bitmap.createBitmap(origBitmap, 0, 0, origBitmap.getWidth(), origBitmap.getHeight(), m, false);
             
 			// ---
-
 			// もし、画像が大きかったら縮小して読み込む
 			// 今回はimageSizeMaxの大きさに合わせる
 			Bitmap shrinked_bitmap;
@@ -539,10 +505,6 @@ public class GanmenScouter extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-//		if(called_intent){
-//			setup_cam_and_preview(false);
-//			called_intent = false;
-//		}
 	    
 		if(isInCamMode){
 			inCam.startPreview();
@@ -580,5 +542,4 @@ public class GanmenScouter extends Activity {
         }
         return (90 + 360 - degrees) % 360;
     }
-    
 }
