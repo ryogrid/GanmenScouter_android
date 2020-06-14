@@ -33,9 +33,11 @@ import android.widget.TextView;
 import com.facepp.error.FaceppParseException;
 import com.facepp.http.HttpRequests;
 import com.facepp.http.PostParameters;
+/*
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
+*/
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -91,7 +93,7 @@ public class GanmenScouter extends Activity {
     
     boolean called_intent = false;
  
-    InterstitialAd mInterstitialAd;
+ //   InterstitialAd mInterstitialAd;
     
     RelativeLayout preview;
 
@@ -160,11 +162,12 @@ public class GanmenScouter extends Activity {
         });
 
         requestNewInterstitial();
-*/
+
         AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
-        
+*/
+
 		incam_btn = (Button) findViewById(R.id.incam_btn);
 		if (hasInCam()) {
 			incam_btn.setText("インカムモードへ切替");
@@ -553,11 +556,11 @@ public class GanmenScouter extends Activity {
         
         double result_val = 50 + tmp;
         result_val = Math.floor(result_val);
-
+/*
         if (mInterstitialAd.isLoaded()) {
             mInterstitialAd.show();
         }
-        
+*/
 		Button pselect_btn = (Button) findViewById(R.id.pselect_btn);
 		pselect_btn.setText(result_val + "点！");
 		
