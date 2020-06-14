@@ -16,7 +16,6 @@ import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.view.MotionEvent;
@@ -90,7 +89,9 @@ public class GanmenScouter extends Activity {
     
     RelativeLayout preview;
 
-    FacePPService facePP;
+    FacePPService facePP = new FacePPService();
+
+    public static GanmenScouter curentInstance = null;
 
     private boolean hasInCam(){
     	int numberOfCameras = Camera.getNumberOfCameras();
@@ -104,7 +105,8 @@ public class GanmenScouter extends Activity {
     @Override
     public void onStart() {
       super.onStart();
-    }
+      GanmenScouter.curentInstance = this;
+	}
 
     private void getPermissions(){
 		if (ContextCompat.checkSelfPermission(this,
@@ -205,7 +207,6 @@ public class GanmenScouter extends Activity {
 			incam_btn.setText("インカム無し");
 			incam_btn.setVisibility(View.INVISIBLE);
 		}
-
     }
     
     private void requestNewInterstitial() {
@@ -418,7 +419,10 @@ public class GanmenScouter extends Activity {
             shrinked_bitmap.compress(CompressFormat.JPEG, 100, baos);
             byte[] shrinked_data = baos.toByteArray();
             
-            String saveDir = Environment.getExternalStorageDirectory().getPath() + "/GanmenScouter";
+            //String saveDir = Environment.getExternalStorageDirectory().getPath() + "/GanmenScouter";
+			File saveDir = GanmenScouter.curentInstance.getFilesDir();
+
+			/*
             // SD カードフォルダを取得
             File file = new File(saveDir);
 
@@ -428,11 +432,13 @@ public class GanmenScouter extends Activity {
                     System.out.println("error: mkdir failed");
                 }
             }
+			 */
 
             // 画像保存パス
             Calendar cal = Calendar.getInstance();
             SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-            String imgPath = saveDir + "/" + sf.format(cal.getTime()) + ".jpg";
+            //String imgPath = saveDir + "/" + sf.format(cal.getTime()) + ".jpg";
+			String imgPath = saveDir.getPath() + "/" + sf.format(cal.getTime()) + ".jpg";
 
             // ファイル保存
             FileOutputStream fos;
