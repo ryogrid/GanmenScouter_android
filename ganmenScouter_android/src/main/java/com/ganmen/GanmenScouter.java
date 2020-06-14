@@ -33,11 +33,13 @@ import android.widget.TextView;
 import com.facepp.error.FaceppParseException;
 import com.facepp.http.HttpRequests;
 import com.facepp.http.PostParameters;
-/*
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
-*/
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -93,7 +95,7 @@ public class GanmenScouter extends Activity {
     
     boolean called_intent = false;
  
- //   InterstitialAd mInterstitialAd;
+	InterstitialAd mInterstitialAd;
     
     RelativeLayout preview;
 
@@ -144,6 +146,32 @@ public class GanmenScouter extends Activity {
 		tv_top.setTextColor(Color.RED);
 		tv_top.setText("　　　　　　　　　　　　　　　画面タッチで測定!");
 		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);
+
+		MobileAds.initialize(this, new OnInitializationCompleteListener() {
+			@Override
+			public void onInitializationComplete(InitializationStatus initializationStatus) {
+				requestNewInterstitial();
+
+				AdView mAdView = (AdView) findViewById(R.id.adView);
+				AdRequest adRequest = new AdRequest.Builder().build();
+				mAdView.loadAd(adRequest);
+			}
+		});
+
+		mInterstitialAd = new InterstitialAd(this);
+		mInterstitialAd.setAdUnitId("ca-app-pub-3869533485696941/9899777318");
+
+		mInterstitialAd.setAdListener(new AdListener() {
+			@Override
+			public void onAdClosed() {
+				requestNewInterstitial();
+				if(mCam == null){
+					setup_in_cam_and_preview();
+				}else{
+					setup_cam_and_preview(false);
+				}
+			}
+		});
 /*
 		MobileAds.initialize(getApplicationContext(), "ca-app-pub-3869533485696941/9899777318");
 	    mInterstitialAd = new InterstitialAd(this);
@@ -242,9 +270,8 @@ public class GanmenScouter extends Activity {
         AdRequest adRequest = new AdRequest.Builder()
                   .addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
                   .build();
-
-        mInterstitialAd.loadAd(adRequest);
-    	 */
+		*/
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
     }
 	private void setup_cam_and_preview(boolean is_first){
 		if(is_first==false){
@@ -556,11 +583,11 @@ public class GanmenScouter extends Activity {
         
         double result_val = 50 + tmp;
         result_val = Math.floor(result_val);
-/*
+
         if (mInterstitialAd.isLoaded()) {
             mInterstitialAd.show();
         }
-*/
+
 		Button pselect_btn = (Button) findViewById(R.id.pselect_btn);
 		pselect_btn.setText(result_val + "点！");
 		
@@ -704,11 +731,10 @@ public class GanmenScouter extends Activity {
                 startActivityForResult(Intent.createChooser(intent, String.valueOf(result_val) + "点を共有"), 101);
             } catch (Exception e) {
             }
-/*
+
             if (mInterstitialAd.isLoaded()) {
                 mInterstitialAd.show();
             }
- */
             
 //            // takePicture するとプレビューが停止するので、再度プレビュースタート
 //            if(mCam == null){
