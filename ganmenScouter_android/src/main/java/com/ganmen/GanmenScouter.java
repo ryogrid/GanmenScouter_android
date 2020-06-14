@@ -17,13 +17,10 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
-import android.provider.MediaStore.Images.Media;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
@@ -55,7 +52,6 @@ import org.json.JSONObject;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -118,40 +114,11 @@ public class GanmenScouter extends Activity {
     @Override
     public void onStart() {
       super.onStart();
-      /*
-      // Obtain the shared Tracker instance
-		AnalyticsApplication application = (AnalyticsApplication) getApplication();
-		Tracker mTracker = application.getDefaultTracker();
-
-
-      mTracker.setScreenName("main screen");
-      mTracker.send(new HitBuilders.ScreenViewBuilder().build());
-      
-      //Tracker t = AnalyticsApplication.tracker();
-      // Enable Display Features.
-      mTracker.enableAdvertisingIdCollection(true);
-      */
     }
 
 	static final int REQUEST_CODE = 1;
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.main);
-
-		MobileAds.initialize(this, new OnInitializationCompleteListener() {
-			@Override
-			public void onInitializationComplete(InitializationStatus initializationStatus) {
-				requestNewInterstitial();
-
-				AdView mAdView = (AdView) findViewById(R.id.adView);
-				AdRequest adRequest = new AdRequest.Builder().build();
-				mAdView.loadAd(adRequest);
-			}
-		});
-
+    private void getPermissions(){
 		// Here, thisActivity is the current activity
 		if (ContextCompat.checkSelfPermission(this,
 				Manifest.permission.CAMERA)
@@ -223,6 +190,25 @@ public class GanmenScouter extends Activity {
 		} else {
 			// Permission has already been granted
 		}
+	}
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.main);
+		getPermissions();
+
+		MobileAds.initialize(this, new OnInitializationCompleteListener() {
+			@Override
+			public void onInitializationComplete(InitializationStatus initializationStatus) {
+				requestNewInterstitial();
+
+				AdView mAdView = (AdView) findViewById(R.id.adView);
+				AdRequest adRequest = new AdRequest.Builder().build();
+				mAdView.loadAd(adRequest);
+			}
+		});
 
 		mInterstitialAd = new InterstitialAd(this);
 		mInterstitialAd.setAdUnitId("ca-app-pub-3869533485696941/9899777318");
@@ -238,39 +224,9 @@ public class GanmenScouter extends Activity {
 				}
 			}
 		});
-/*
-		MobileAds.initialize(getApplicationContext(), "ca-app-pub-3869533485696941/9899777318");
-	    mInterstitialAd = new InterstitialAd(this);
-        mInterstitialAd.setAdUnitId("ca-app-pub-3869533485696941/9899777318");
-
-        mInterstitialAd.setAdListener(new AdListener() {
-            @Override
-            public void onAdClosed() {
-                requestNewInterstitial();
-                if(mCam == null){
-                	setup_in_cam_and_preview();
-                }else{
-                	setup_cam_and_preview(false);
-                }
-            }
-        });
-
-        requestNewInterstitial();
-
-        AdView mAdView = (AdView) findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
-*/
 
         setup_cam_and_preview(true);
-//		com.ad_stir.webview.AdstirMraidView adview = new com.ad_stir.webview.AdstirMraidView(
-//			    this,
-//			    "MEDIA-69c5161",
-//			    2,
-//			    com.ad_stir.webview.AdstirMraidView.AdSize.Size320x50,
-//			    3);
-//		adview.setBottom(500);
-//		preview.addView(adview);        
+
 		preview = (RelativeLayout) findViewById(R.id.cameraPreview);
 
 		tv_top = new TextView(this);
@@ -295,66 +251,12 @@ public class GanmenScouter extends Activity {
 			incam_btn.setText("インカム無効");
 		}
 
-		Button pselect_btn = (Button) findViewById(R.id.pselect_btn);
-		pselect_btn.setText("撮影済画像を判定");
-		pselect_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                Intent intent = new Intent(Intent.ACTION_CHOOSER);
-//                intent.addCategory(Intent.CATEGORY_OPENABLE);
-//                intent.setType("image/*");
-//                startActivityForResult(intent, 1001);
-                
-//                Intent intentGallery;
-//                intentGallery = new Intent(Intent.ACTION_GET_CONTENT);
-//                intentGallery.setType("image/*");
-//                startActivityForResult(intentGallery, 1000);
-                
-                Intent i = new Intent( Intent.ACTION_PICK, Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(i, 1);
-            }
-            
-        });		
-    }
-	
-	@Override protected void onActivityResult( int requestCode, int resultCode, Intent data) { 
-		super.onActivityResult(requestCode, resultCode, data); 
-		if (requestCode == 1 && resultCode == RESULT_OK && null != data) { 
-			Uri selectedImage = data.getData(); 
-			Bitmap bmap = null;
-			try {
-				bmap = getBitmapFromUri(selectedImage);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			PictureSelected(bmap);
-//			String[] filePathColumn = { Media.DATA }; 
-//			Cursor cursor = getContentResolver().query( selectedImage, filePathColumn, null, null, null); 
-//			cursor.moveToFirst(); 
-//			int columnIndex = cursor.getColumnIndex(filePathColumn[0]); 
-//			String picturePath = cursor.getString(columnIndex); 
-//			cursor.close();
-		}
-	}
-
-    private Bitmap getBitmapFromUri(Uri uri) throws IOException {
-        ParcelFileDescriptor parcelFileDescriptor =
-                getContentResolver().openFileDescriptor(uri, "r");
-        FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
-        Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
-        parcelFileDescriptor.close();
-        return image;
     }
     
     private void requestNewInterstitial() {
-    	/*
-        AdRequest adRequest = new AdRequest.Builder()
-                  .addTestDevice("SEE_YOUR_LOGCAT_TO_GET_YOUR_DEVICE_ID")
-                  .build();
-		*/
         mInterstitialAd.loadAd(new AdRequest.Builder().build());
     }
+
 	private void setup_cam_and_preview(boolean is_first){
 		if(is_first==false){
 			RelativeLayout preview = (RelativeLayout) findViewById(R.id.cameraPreview);
@@ -444,8 +346,6 @@ public class GanmenScouter extends Activity {
 			}
 		});
 		preview.addView(mchange_btn);
-		
-		
 	}
 
 	 public static void setCameraDisplayOrientation(Activity activity,
@@ -581,101 +481,7 @@ public class GanmenScouter extends Activity {
             
         }
     };
-    
-    private void PictureSelected(Bitmap origBitmap){
-		// もし、画像が大きかったら縮小して読み込む
-		// 今回はimageSizeMaxの大きさに合わせる
-		Bitmap shrinked_bitmap;
-		int imageSizeMax = 240;
-		float imageScaleWidth = origBitmap.getWidth() / imageSizeMax;
-		float imageScaleHeight = origBitmap.getHeight() / imageSizeMax;
 
-		// もしも、縮小できるサイズならば、縮小して読み込む
-		if (imageScaleWidth > 2 && imageScaleHeight > 2) {
-			BitmapFactory.Options imageOptions2 = new BitmapFactory.Options();
-
-			// 縦横、小さい方に縮小するスケールを合わせる
-			int imageScale = (int) Math
-					.floor((imageScaleWidth > imageScaleHeight ? imageScaleHeight : imageScaleWidth));
-
-			// inSampleSizeには2のべき上が入るべきなので、imageScaleに最も近く、かつそれ以下の2のべき上の数を探す
-			for (int i = 2; i <= imageScale; i *= 2) {
-				imageOptions2.inSampleSize = i;
-			}
-
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			origBitmap.compress(CompressFormat.JPEG, 100, baos);
-			byte[] rot_bytes = baos.toByteArray();
-			ByteArrayInputStream bis = new ByteArrayInputStream(rot_bytes);
-			shrinked_bitmap = BitmapFactory.decodeStream(bis, null, imageOptions2);
-			try {
-				bis.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}				
-			System.out.println("Sample Size: 1/" + imageOptions2.inSampleSize);				
-		} else {
-			shrinked_bitmap = origBitmap;
-		}
-		// ---
-                                            
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        shrinked_bitmap.compress(CompressFormat.JPEG, 100, baos);
-        byte[] shrinked_data = baos.toByteArray();
-        
-        String saveDir = Environment.getExternalStorageDirectory().getPath() + "/GanmenScouter";
-        // SD カードフォルダを取得
-        File file = new File(saveDir);
-
-        // フォルダ作成
-        if (!file.exists()) {
-            if (!file.mkdir()) {
-                System.out.println("error: mkdir failed");
-            }
-        }
-
-        // 画像保存パス
-        Calendar cal = Calendar.getInstance();
-        SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-        String imgPath = saveDir + "/" + sf.format(cal.getTime()) + ".jpg";
-
-        // ファイル保存
-        FileOutputStream fos;
-        try {
-            fos = new FileOutputStream(imgPath, true);
-            fos.write(shrinked_data);
-            fos.close();
-
-            // アンドロイドのデータベースへ登録
-            // (登録しないとギャラリーなどにすぐに反映されないため)
-            registAndroidDB(imgPath);
-
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-
-        fos = null;
-
-        double tmp = 0;
-        if(!isMaleMode){
-        	tmp = measure_similarity(get_face_id("japanese_bijin.png"), get_face_id(shrinked_data));	
-        }else{
-        	tmp = measure_similarity(get_face_id("otoko_ikemen.png"), get_face_id(shrinked_data));            	
-        }
-        
-        double result_val = 50 + tmp;
-        result_val = Math.floor(result_val);
-
-        if (mInterstitialAd.isLoaded()) {
-            mInterstitialAd.show();
-        }
-
-		Button pselect_btn = (Button) findViewById(R.id.pselect_btn);
-		pselect_btn.setText(result_val + "点！");
-		
-//        tv_top.setText("　　　　　　　　　　　　　　　" + result_val + "点！");
-    }
-    
     /**
      * JPEG データ生成完了時のコールバック
      */
@@ -795,15 +601,6 @@ public class GanmenScouter extends Activity {
             }
             
             try {
-            	/*
-				((AnalyticsApplication) getApplication()).getDefaultTracker().send(new HitBuilders.EventBuilder()
-            		    .setCategory("Action")
-            		    .setAction("TakePic")
-            		    .build());
-
-            	 */
-          
-
             	called_intent = true;
                 Intent intent = new Intent();
                 intent.setAction(Intent.ACTION_SEND);
@@ -817,22 +614,8 @@ public class GanmenScouter extends Activity {
             if (mInterstitialAd.isLoaded()) {
                 mInterstitialAd.show();
             }
-            
-//            // takePicture するとプレビューが停止するので、再度プレビュースタート
-//            if(mCam == null){
-//            	inCam.startPreview();
-//            }else{
-//            	mCam.startPreview();             	
-//            }
-            
         }
     };
-
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data){
-//        // takePicture するとプレビューが停止するので、再度プレビュースタート
-//        mCam.startPreview();    	
-//    }
     
     /**
      * アンドロイドのデータベースへ画像のパスを登録
@@ -898,28 +681,13 @@ public class GanmenScouter extends Activity {
 		// ---
 		// View作成
 
-		// // View内のView取得
-		// SurfaceView surfaceView_ = (SurfaceView)
-		// rootView.findViewById(R.id.surface_view);
-
-		// // SurfaceHolder設定
-		// SurfaceHolder holder = surfaceView_.getHolder();
-		// holder.addCallback(surfaceListener_);
-		// holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-		//
-		// // タッチリスナー設定
-		// rootView_.setOnTouchListener(ontouchListener_);
-
 		boolean isLandscape = rootView_.getWidth() > rootView_.getHeight(); // 横画面か?
 
 		ViewGroup.LayoutParams rtlp = rootView_.getLayoutParams();
 		if (isLandscape) {
 			// 横画面
 			rtlp.width = rootView_.getHeight() * width / height;
-			//rtlp.width = rootView_.getHeight() * height / width;
-			
 			rtlp.height = rootView_.getHeight();
-			//rtlp.height = rootView_.getHeight() * height / width;
 		} else {
 			// 縦画面
 			rtlp.width = rootView_.getWidth();
@@ -973,7 +741,6 @@ public class GanmenScouter extends Activity {
 			AssetFileDescriptor fd = am.openFd(file_path);			
 			fis = fd.createInputStream();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	    ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -982,14 +749,12 @@ public class GanmenScouter extends Activity {
 			    baos.write(b);
 			}
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	    try {
 			baos.close();
 		    fis.close();			
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
@@ -1040,7 +805,6 @@ public class GanmenScouter extends Activity {
 			 result = httpRequests.recognitionCompare(params);
 			 ret = result.getDouble("confidence");			 
 		} catch (FaceppParseException | JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
