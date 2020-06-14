@@ -8,8 +8,6 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
@@ -34,9 +32,6 @@ import android.widget.TextView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.facepp.error.FaceppParseException;
-import com.facepp.http.HttpRequests;
-import com.facepp.http.PostParameters;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -45,14 +40,9 @@ import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -67,9 +57,8 @@ import com.google.android.gms.security.ProviderInstaller.ProviderInstallListener
 
 public class GanmenScouter extends Activity {
 	private final int WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT;
-	private final String API_KEY = "6w7AMUqM_MRztslYVnDGXso6zWPdNdLy";
-	private final String API_SECRET = "cPnh_soPUVuSjThWxBJZEse9ODkB8-IW";
-
+	static final int REQUEST_CODE = 1;
+	
     // プレビューサイズ
     static private int width = -1;
     static private int height = -1;
@@ -102,6 +91,8 @@ public class GanmenScouter extends Activity {
     
     RelativeLayout preview;
 
+    FacePPService facePP;
+
     private boolean hasInCam(){
     	int numberOfCameras = Camera.getNumberOfCameras();
     	if(numberOfCameras == 2){
@@ -115,8 +106,6 @@ public class GanmenScouter extends Activity {
     public void onStart() {
       super.onStart();
     }
-
-	static final int REQUEST_CODE = 1;
 
     private void getPermissions(){
 		// Here, thisActivity is the current activity
@@ -582,9 +571,9 @@ public class GanmenScouter extends Activity {
 
             double tmp = 0;
             if(!isMaleMode){
-            	tmp = measure_similarity(get_face_id("japanese_bijin.png"), get_face_id(shrinked_data));	
+            	tmp = facePP.measure_similarity(facePP.get_face_id("japanese_bijin.png", getAssets()), facePP.get_face_id(shrinked_data));
             }else{
-            	tmp = measure_similarity(get_face_id("otoko_ikemen.png"), get_face_id(shrinked_data));            	
+            	tmp = facePP.measure_similarity(facePP.get_face_id("otoko_ikemen.png", getAssets()), facePP.get_face_id(shrinked_data));
             }
             
             double result_val = 50 + tmp;
@@ -702,114 +691,7 @@ public class GanmenScouter extends Activity {
 		// ---
 	}
     
-    private String get_face_id(byte[] data){
-    	HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, true, false);
-    	
-    	JSONObject result = null;
-		try {
-			//detect
-			 result = httpRequests.detectionDetect(new PostParameters().setImg(data));
-		} catch (FaceppParseException e) {
-			e.printStackTrace();
-		}
-		
-		String ret = null;
-		JSONArray tmp = null;
-		try {
-			tmp = result.getJSONArray("faces");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		if(tmp.length() > 0){
-			try {
-				ret = tmp.getJSONObject(0).getString("face_token");
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
 
-		return ret;    	
-    }
-	
-	private String get_face_id(String file_path){
-		HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, true, false);
-		
-	    byte[] b = new byte[1];
-	    AssetManager am = getAssets();	    
-	    FileInputStream fis = null;
-		try {
-			AssetFileDescriptor fd = am.openFd(file_path);			
-			fis = fd.createInputStream();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	    try {
-			while (fis.read(b) > 0) {
-			    baos.write(b);
-			}
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-	    try {
-			baos.close();
-		    fis.close();			
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-
-	    byte[] array = baos.toByteArray();		
-		
-	    JSONObject result = null;
-		try {
-			//detect
-			 result = httpRequests.detectionDetect(new PostParameters().setImg(array));
-		} catch (FaceppParseException e) {
-			e.printStackTrace();
-		}
-		
-		String ret = null;
-		//System.out.println(result);
-		if(result != null){
-			JSONArray tmp = null;
-			try {
-				tmp = result.getJSONArray("faces");
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-			if(tmp != null){
-				try {
-					ret = tmp.getJSONObject(0).getString("face_token");
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-			}			
-		}
-		
-		return ret;
-	}
-	
-	private double measure_similarity(String face_id1, String face_id2){
-		HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, true, false);
-		
-		PostParameters params = new PostParameters();
-		params.setFaceId1(face_id1);
-		if(face_id2 == null){
-			return -1;
-		}
-		params.setFaceId2(face_id2);
-
-		JSONObject result = null;
-	    double ret = -1;
-		try {
-			 result = httpRequests.recognitionCompare(params);
-			 ret = result.getDouble("confidence");			 
-		} catch (FaceppParseException | JSONException e) {
-			e.printStackTrace();
-		}
-		
-		return ret;
-	}
 	
     private static int getCameraDisplayOrientation(Activity activity) {
         int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
