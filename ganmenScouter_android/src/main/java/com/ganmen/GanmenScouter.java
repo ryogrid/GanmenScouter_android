@@ -275,11 +275,7 @@ public class GanmenScouter extends Activity {
 		RelativeLayout preview = (RelativeLayout) findViewById(R.id.cameraPreview);
 
 		mCamPreview = new CameraPreview(this, currentCam);
-		if(isInCamMode){
-			setCameraDisplayOrientation(this, 1, inCam);
-		}else{
-			setCameraDisplayOrientation(this, 0, mCam);
-		}
+                setCameraDisplayOrientation(this, isInCamMode ? 0 : 1, currentCam);
 
 		preview.addView(mCamPreview);
 
@@ -353,11 +349,7 @@ public class GanmenScouter extends Activity {
         @Override
         public void onAutoFocus(boolean success, Camera camera) {
             camera.autoFocus(null);
-            if(isInCamMode){
-            	inCam.takePicture(null, null, mPicJpgListener);            	
-            }else{
-            	mCam.takePicture(null, null, mPicJpgListener);	
-            }
+            camera.takePicture(null, null, mPicJpgListener);
         }
     };
 
@@ -498,11 +490,7 @@ public class GanmenScouter extends Activity {
             mIsTake = false;
  
             // takePicture するとプレビューが停止するので、再度プレビュースタート
-            if(isInCamMode){
-            	inCam.startPreview();
-            }else{
-            	mCam.startPreview();             	
-            }
+            camera.startPreview();             	
             
             try {
             	called_intent = true;
