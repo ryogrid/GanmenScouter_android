@@ -170,12 +170,13 @@ public class GanmenScouter extends Activity {
 		MobileAds.initialize(this, new OnInitializationCompleteListener() {
 			@Override
 			public void onInitializationComplete(InitializationStatus initializationStatus) {
-				requestNewInterstitial();
+				//requestNewInterstitial();
 			}
 		});
 
 		mInterstitialAd = new InterstitialAd(this);
 		mInterstitialAd.setAdUnitId("ca-app-pub-3869533485696941/9899777318");
+                requestNewInterstitial();
 
 		mInterstitialAd.setAdListener(new AdListener() {
 			@Override
