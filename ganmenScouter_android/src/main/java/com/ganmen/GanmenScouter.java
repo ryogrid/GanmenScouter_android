@@ -46,6 +46,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 /*
 import com.ganmen.AnalyticsApplication;
 import com.google.android.gms.analytics.HitBuilders;
@@ -90,6 +92,9 @@ public class GanmenScouter extends Activity {
     RelativeLayout preview;
 
     FacePPService facePP = new FacePPService();
+
+    public static double doubleTaskResult = 0;
+    public static String stringTaskResult = null;
 
     public static GanmenScouter curentInstance = null;
 
@@ -457,14 +462,35 @@ public class GanmenScouter extends Activity {
 
             fos = null;
 
-            double tmp = 0;
+
             if(!isMaleMode){
-            	tmp = facePP.measure_similarity(facePP.get_face_id("japanese_bijin.png", getAssets()), facePP.get_face_id(shrinked_data));
-            }else{
-            	tmp = facePP.measure_similarity(facePP.get_face_id("otoko_ikemen.png", getAssets()), facePP.get_face_id(shrinked_data));
+            	Supplier<Double> sup = () -> {
+					double tmp = facePP.measure_similarity(facePP.get_face_id("japanese_bijin.png", getAssets()), facePP.get_face_id(shrinked_data));
+					GanmenScouter.doubleTaskResult = tmp;
+					return tmp;
+				};
+				CompletableFuture<Double> future = CompletableFuture.supplyAsync(sup);
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
+			}else{
+				Supplier<Double> sup = () -> {
+					double tmp = facePP.measure_similarity(facePP.get_face_id("otoko_ikemen.png", getAssets()), facePP.get_face_id(shrinked_data));
+					GanmenScouter.doubleTaskResult = tmp;
+					return tmp;
+				};
+				CompletableFuture<Double> future = CompletableFuture.supplyAsync(sup);
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
             }
             
-            double result_val = 50 + tmp;
+            double result_val = 50 + GanmenScouter.doubleTaskResult;
             result_val = Math.floor(result_val);
 //            tv_top.setText(String.valueOf(result_val) + "点");
             

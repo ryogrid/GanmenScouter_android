@@ -20,7 +20,8 @@ public class FacePPService {
     private final String API_SECRET = "cPnh_soPUVuSjThWxBJZEse9ODkB8-IW";
 
     public String get_face_id(byte[] data){
-        HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, true, false);
+        //HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, true, false);
+        HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, false, false);
 
         JSONObject result = null;
         try {
@@ -49,7 +50,8 @@ public class FacePPService {
     }
 
     public String get_face_id(String file_path, AssetManager am){
-        HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, true, false);
+        //HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, true, false);
+        HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, false, false);
 
         byte[] b = new byte[1];
         //AssetManager am = getAssets();
@@ -107,7 +109,8 @@ public class FacePPService {
     }
 
     public double measure_similarity(String face_id1, String face_id2){
-        HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, true, false);
+        //HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, true, false);
+        HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, false, false);
 
         PostParameters params = new PostParameters();
         params.setFaceId1(face_id1);

@@ -22,10 +22,13 @@ android {
 
     defaultConfig {
         applicationId "com.ganmen"
-        minSdkVersion 16
+        minSdkVersion 24
         targetSdkVersion 29
         versionCode 31
         versionName "31.0"
+//        jackOptions {
+//            enabled true
+//        }
     }
 
     buildTypes {
@@ -33,6 +36,11 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
