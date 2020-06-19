@@ -127,6 +127,7 @@ public class GanmenScouter extends Activity {
 						})
 						.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
+								getPermissions();
 							}
 						}).create().show();
 			} else {
@@ -149,6 +150,7 @@ public class GanmenScouter extends Activity {
 						})
 						.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
+								getPermissions();
 							}
 						}).create().show();
 			} else {
@@ -158,7 +160,24 @@ public class GanmenScouter extends Activity {
 		} else {
 		}
 	}
-
+/*
+	@Override
+	public void onRequestPermissionsResult(int requestCode,
+										   String[] permissions, int[] grantResults) {
+		switch (requestCode) {
+			case REQUEST_CODE: {
+				if (grantResults.length > 0
+						&& grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+					setup_cam_and_preview();
+				} else {
+					// retry
+					getPermissionsAndSetupUI();
+				}
+				return;
+			}
+		}
+	}
+*/
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -202,6 +221,15 @@ public class GanmenScouter extends Activity {
 		}
 		isInitializedUI = true;
 
+		while(ContextCompat.checkSelfPermission(this,
+				Manifest.permission.CAMERA)
+				!= PackageManager.PERMISSION_GRANTED){
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 		// カメラインスタンスの取得
 		try {
 			if(mCam!=null){
