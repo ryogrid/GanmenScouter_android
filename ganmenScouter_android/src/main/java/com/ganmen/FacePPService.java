@@ -19,6 +19,14 @@ public class FacePPService {
     private final String API_KEY = "6w7AMUqM_MRztslYVnDGXso6zWPdNdLy";
     private final String API_SECRET = "cPnh_soPUVuSjThWxBJZEse9ODkB8-IW";
 
+    private void thread_sleep(int millis){
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     public String get_face_id(byte[] data){
         //HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, true, false);
         HttpRequests httpRequests = new HttpRequests(API_KEY, API_SECRET, false, false);
@@ -45,6 +53,9 @@ public class FacePPService {
                 e.printStackTrace();
             }
         }
+
+        //for avoiding api call frequency overs QPS limit of face++
+        thread_sleep(1000);
 
         return ret;
     }
@@ -104,6 +115,9 @@ public class FacePPService {
                 }
             }
         }
+
+        //for avoiding api call frequency overs QPS limit of face++
+        thread_sleep(1000);
 
         return ret;
     }

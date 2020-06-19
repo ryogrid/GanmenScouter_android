@@ -470,7 +470,7 @@ public class GanmenScouter extends Activity {
 				};
 				CompletableFuture<Double> future = CompletableFuture.supplyAsync(sup);
 				try {
-					Thread.sleep(3000);
+					Thread.sleep(7000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -483,13 +483,13 @@ public class GanmenScouter extends Activity {
 				};
 				CompletableFuture<Double> future = CompletableFuture.supplyAsync(sup);
 				try {
-					Thread.sleep(3000);
+					Thread.sleep(7000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
             }
             
-            double result_val = 50 + GanmenScouter.doubleTaskResult;
+            double result_val = 50.0 + GanmenScouter.doubleTaskResult;
             result_val = Math.floor(result_val);
 //            tv_top.setText(String.valueOf(result_val) + "点");
             
