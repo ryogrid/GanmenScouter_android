@@ -25,6 +25,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout.LayoutParams;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -50,12 +51,6 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
-/*
-import com.ganmen.AnalyticsApplication;
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
-import com.google.android.gms.security.ProviderInstaller.ProviderInstallListener;
-*/
 
 public class GanmenScouter extends Activity {
 	private final int WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -94,6 +89,8 @@ public class GanmenScouter extends Activity {
     RelativeLayout preview;
 
     FacePPService facePP = new FacePPService();
+
+    private boolean isInitializedUI = false;
 
     public static double doubleTaskResult = 0;
     public static String stringTaskResult = null;
@@ -189,34 +186,7 @@ public class GanmenScouter extends Activity {
 			}
 		});
  */
-
-        setup_cam_and_preview(true);
-
-		preview = (RelativeLayout) findViewById(R.id.cameraPreview);
-
-		tv_top = new TextView(this);
-		tv_top.setTextColor(Color.RED);
-		tv_top.setText("　　　　　　　　　　　　　　　画面タッチで測定!");
-		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);
-
-		incam_btn = (Button) findViewById(R.id.incam_btn);
-		if (hasInCam()) {
-			incam_btn.setText("インカムモードへ切替");
-			incam_btn.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					if (isInCamMode == false) {
-						isInCamMode = true;
-//						incam_btn.setText("背面カメラモードへ切替");
-						incam_btn.setVisibility(View.INVISIBLE);
-						//setup_in_cam_and_preview();
-						setup_cam_and_preview(false);
-					}
-				}
-			});
-		} else {
-			incam_btn.setText("インカム無し");
-			incam_btn.setVisibility(View.INVISIBLE);
-		}
+		setup_cam_and_preview();
     }
 
 /*
@@ -225,11 +195,12 @@ public class GanmenScouter extends Activity {
     }
  */
 
-	private void setup_cam_and_preview(boolean is_first){
-		if(is_first==false){
+	private void setup_cam_and_preview(){
+		if(isInitializedUI = true){
 			RelativeLayout preview = (RelativeLayout) findViewById(R.id.cameraPreview);
 			preview.removeView(mCamPreview);
 		}
+		isInitializedUI = true;
 
 		// カメラインスタンスの取得
 		try {
@@ -309,6 +280,30 @@ public class GanmenScouter extends Activity {
 		tv_top.setText("　　　　　　　　　　　　　　　画面タッチで測定!");
 		preview.addView(tv_top, LayoutParams.WRAP_CONTENT);
 
+		LinearLayout layout_buttons = new LinearLayout(this);
+		layout_buttons.setOrientation(LinearLayout.VERTICAL);
+
+		if (hasInCam()) {
+			incam_btn = new Button(this);
+			if(isInCamMode){
+				incam_btn.setText("メインカメラモードへ切替");
+			}else{
+				incam_btn.setText("インカムモードへ切替");
+			}
+			incam_btn.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					if (isInCamMode) {
+						isInCamMode = false;
+						setup_cam_and_preview();
+					}else{
+						isInCamMode = true;
+						setup_cam_and_preview();
+					}
+				}
+			});
+		}
+		layout_buttons.addView(incam_btn);
+
 		mchange_btn = new Button(this);
 		mchange_btn.setText("男性撮影モードへ切替");
 		mchange_btn.setOnClickListener(new OnClickListener() {
@@ -322,7 +317,8 @@ public class GanmenScouter extends Activity {
 				}
 			}
 		});
-		preview.addView(mchange_btn);
+		layout_buttons.addView(mchange_btn);
+		preview.addView(layout_buttons);
 	}
 
 	 public static void setCameraDisplayOrientation(Activity activity,
@@ -423,25 +419,11 @@ public class GanmenScouter extends Activity {
             shrinked_bitmap.compress(CompressFormat.JPEG, 100, baos);
             byte[] shrinked_data = baos.toByteArray();
             
-            //String saveDir = Environment.getExternalStorageDirectory().getPath() + "/GanmenScouter";
 			File saveDir = GanmenScouter.curentInstance.getFilesDir();
-
-			/*
-            // SD カードフォルダを取得
-            File file = new File(saveDir);
-
-            // フォルダ作成
-            if (!file.exists()) {
-                if (!file.mkdir()) {
-                    System.out.println("error: mkdir failed");
-                }
-            }
-			 */
 
             // 画像保存パス
             Calendar cal = Calendar.getInstance();
             SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-            //String imgPath = saveDir + "/" + sf.format(cal.getTime()) + ".jpg";
 			String imgPath = saveDir.getPath() + "/" + sf.format(cal.getTime()) + ".jpg";
 
             // ファイル保存
@@ -491,8 +473,7 @@ public class GanmenScouter extends Activity {
             
             double result_val = 50.0 + GanmenScouter.doubleTaskResult;
             result_val = Math.floor(result_val);
-//            tv_top.setText(String.valueOf(result_val) + "点");
-            
+
             mIsTake = false;
  
             // takePicture するとプレビューが停止するので、再度プレビュースタート
