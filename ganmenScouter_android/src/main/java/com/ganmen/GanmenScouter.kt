@@ -133,7 +133,8 @@ class GanmenScouter : Activity() {
 				setup_cam_and_preview(false);
 			}
 		});
- */setup_cam_and_preview()
+ */
+        setup_cam_and_preview()
     }
 
     /*
