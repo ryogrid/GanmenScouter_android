@@ -31,12 +31,14 @@ import android.widget.TextView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+/*
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+*/
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -87,7 +89,7 @@ public class GanmenScouter extends Activity {
     
     boolean called_intent = false;
  
-	InterstitialAd mInterstitialAd;
+	//InterstitialAd mInterstitialAd;
     
     RelativeLayout preview;
 
@@ -167,6 +169,7 @@ public class GanmenScouter extends Activity {
         setContentView(R.layout.main);
 		getPermissions();
 
+/*
 		MobileAds.initialize(this, new OnInitializationCompleteListener() {
 			@Override
 			public void onInitializationComplete(InitializationStatus initializationStatus) {
@@ -185,6 +188,7 @@ public class GanmenScouter extends Activity {
 				setup_cam_and_preview(false);
 			}
 		});
+ */
 
         setup_cam_and_preview(true);
 
@@ -214,10 +218,12 @@ public class GanmenScouter extends Activity {
 			incam_btn.setVisibility(View.INVISIBLE);
 		}
     }
-    
+
+/*
     private void requestNewInterstitial() {
         mInterstitialAd.loadAd(new AdRequest.Builder().build());
     }
+ */
 
 	private void setup_cam_and_preview(boolean is_first){
 		if(is_first==false){
@@ -502,10 +508,11 @@ public class GanmenScouter extends Activity {
                 startActivityForResult(Intent.createChooser(intent, String.valueOf(result_val) + "点を共有"), 101);
             } catch (Exception e) {
             }
-
+/*
             if (mInterstitialAd.isLoaded()) {
                 mInterstitialAd.show();
             }
+ */
         }
     };
     
