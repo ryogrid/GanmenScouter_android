@@ -29,7 +29,6 @@ import java.util.Map;
 public class HttpRequests {
 	
 	static final private String WEBSITE_CN = "https://api-us.faceplusplus.com/facepp/v3/";
-	//static final private String WEBSITE_CN = "http://localhost:8080/";
 	static final private String DWEBSITE_CN = "https://api-us.faceplusplus.com/facepp/v3/";
 	static final private String WEBSITE_US = "https://api-us.faceplusplus.com/facepp/v3/";
 	static final private String DWEBSITE_US = "https://api-us.faceplusplus.com/facepp/v3/";
