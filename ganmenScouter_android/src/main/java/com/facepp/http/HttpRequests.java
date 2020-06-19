@@ -377,33 +377,11 @@ public class HttpRequests {
 			for (Map.Entry<String, byte[]> entry : multiPart.entrySet()) {
 				if(entry.getKey().equals("image_file")){
 					contentsBuilder.append(twoHyphens + boundary + lineEnd);
-					// outputStream.writeBytes("Content-Disposition: form-data;
-					// name=\"" + entry.getKey() + "\";filename=\"hoge.jpeg\";"+
-					// lineEnd);
 					contentsBuilder.append("Content-Disposition: form-data;name=\"" + entry.getKey() + "\";filename=\"hoge.png\"" + lineEnd);
-					// outputStream.writeBytes("Content-Type: text/plain"+lineEnd);
 					contentsBuilder.append("Content-Type: application/octet-stream" + lineEnd);
 					contentsBuilder.append(lineEnd);
 					
 					file_data = entry.getValue();
-					
-					// outputStream.writeBytes(new String(entry.getValue()));
-					//contentsBuilder.append(lineEnd);
-
-					// System.out.println(twoHyphens + boundary + lineEnd);
-					//// outputStream.writeBytes("Content-Disposition: form-data;
-					// name=\"" + entry.getKey() + "\";filename=\"hoge.jpeg\";"+
-					// lineEnd);
-					// System.out.println("Content-Disposition: form-data; name=\""
-					// + entry.getKey() + "\";"+ lineEnd);
-					// //outputStream.writeBytes("Content-Type:
-					// text/plain"+lineEnd);
-					// outputStream.writeBytes("Content-Type:
-					// application/octet-stream"+lineEnd);
-					// System.out.println(lineEnd);
-					// System.out.write(entry.getValue());
-					// //outputStream.writeBytes(new String(entry.getValue()));
-					// System.out.println(lineEnd);					
 				}
 			}
 
@@ -488,7 +466,7 @@ public class HttpRequests {
 	/**
 	 * create {@link HttpRequests} <br />
 	 * api_key=...,api_secret=...<br />
-	 * the isCN and isDebug use like {@link setWebSite}}
+	 * the isCN and isDebug use like
 	 * @param apiKey
 	 * @param apiSecret
 	 * @param isCN

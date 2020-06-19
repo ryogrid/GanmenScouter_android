@@ -117,7 +117,6 @@ public class GanmenScouter extends Activity {
 				Manifest.permission.CAMERA)
 				!= PackageManager.PERMISSION_GRANTED) {
 
-
 			if (ActivityCompat.shouldShowRequestPermissionRationale(this,
 					Manifest.permission.CAMERA)) {
 				(new AlertDialog.Builder(this)).setMessage("端末の「設定」でカメラの権限を許可してください。")
@@ -160,24 +159,7 @@ public class GanmenScouter extends Activity {
 		} else {
 		}
 	}
-/*
-	@Override
-	public void onRequestPermissionsResult(int requestCode,
-										   String[] permissions, int[] grantResults) {
-		switch (requestCode) {
-			case REQUEST_CODE: {
-				if (grantResults.length > 0
-						&& grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					setup_cam_and_preview();
-				} else {
-					// retry
-					getPermissionsAndSetupUI();
-				}
-				return;
-			}
-		}
-	}
-*/
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
